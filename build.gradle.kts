@@ -1,6 +1,5 @@
 plugins {
     kotlin("jvm") version "1.9.21"
-    kotlin("multiplatform") version "1.2.21"
 }
 
 group = "de.fruiture.cor.ccs"
@@ -11,7 +10,8 @@ repositories {
 }
 
 dependencies {
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.10")
+    testImplementation("io.kotest:kotest-assertions-core:5.6.2")
 }
 
 tasks.test {
