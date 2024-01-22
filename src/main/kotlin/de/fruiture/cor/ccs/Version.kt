@@ -1,181 +1,12 @@
 package de.fruiture.cor.ccs
 
-import de.fruiture.cor.ccs.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.Build.Companion.add
 import de.fruiture.cor.ccs.Build.Companion.suffix
 import de.fruiture.cor.ccs.NumericIdentifier.Companion.numeric
-import de.fruiture.cor.ccs.PreReleaseIdentifier.Companion.identifier
-
-private const val LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-private const val NON_DIGITS = "-$LETTERS"
-private const val POSITIVE_DIGITS = "123456789"
-private const val DIGITS = "0$POSITIVE_DIGITS"
-private const val IDENTIFIER_CHARACTERS = "$NON_DIGITS$DIGITS"
-
-private val Char.digit get() = this in DIGITS
-private val Char.nonDigit get() = this in NON_DIGITS
-private val Char.identifier get() = this in IDENTIFIER_CHARACTERS
-
-@JvmInline
-value class AlphaNumericIdentifier(private val value: String) : Comparable<AlphaNumericIdentifier> {
-    init {
-        require(value.isNotEmpty())
-        require(value.all { it.identifier })
-        require(value.any { it.nonDigit })
-    }
-
-    override fun compareTo(other: AlphaNumericIdentifier) = value.compareTo(other.value)
-    override fun toString() = value
-
-    companion object {
-        val String.alphanumeric get() = AlphaNumericIdentifier(this)
-    }
-}
-
-@JvmInline
-value class NumericIdentifier(private val number: Int) : Comparable<NumericIdentifier> {
-    init {
-        require(number >= 0)
-    }
-
-    override fun compareTo(other: NumericIdentifier) = number.compareTo(other.number)
-    override fun toString() = number.toString()
-    operator fun plus(i: Int): NumericIdentifier {
-        require(i >= 0)
-        return NumericIdentifier(number + i)
-    }
-
-    companion object {
-        val Int.numeric get() = NumericIdentifier(this)
-    }
-}
-
-@JvmInline
-value class DigitIdentifier(private val value: String) {
-    init {
-        require(value.isNotEmpty())
-        require(value.all { it.digit })
-    }
-
-    override fun toString() = value
-
-    companion object {
-        val String.digits get() = DigitIdentifier(this)
-    }
-}
-
-sealed class PreReleaseIdentifier : Comparable<PreReleaseIdentifier> {
-    data class AlphaNumeric(val identifier: AlphaNumericIdentifier) : PreReleaseIdentifier() {
-        override fun compareTo(other: PreReleaseIdentifier) = when (other) {
-            is AlphaNumeric -> identifier.compareTo(other.identifier)
-            is Numeric -> 1
-        }
-
-        override fun toString() = identifier.toString()
-    }
-
-    data class Numeric(val identifier: NumericIdentifier) : PreReleaseIdentifier() {
-        override fun compareTo(other: PreReleaseIdentifier) = when (other) {
-            is Numeric -> identifier.compareTo(other.identifier)
-            is AlphaNumeric -> -1
-        }
-
-        override fun toString() = identifier.toString()
-        fun bump() = Numeric(identifier + 1)
-    }
-
-    companion object {
-        fun identifier(identifier: AlphaNumericIdentifier) = AlphaNumeric(identifier)
-        fun identifier(identifier: NumericIdentifier) = Numeric(identifier)
-        fun parse(string: String) =
-            if (string.all { it.digit }) identifier(NumericIdentifier(string.toInt()))
-            else identifier(AlphaNumericIdentifier(string))
-    }
-}
-
-data class PreReleaseIndicator(val identifiers: List<PreReleaseIdentifier>) : Comparable<PreReleaseIndicator> {
-    init {
-        require(identifiers.isNotEmpty()) { "at least one identifier required" }
-    }
-
-    override fun compareTo(other: PreReleaseIndicator): Int {
-        return identifiers.asSequence().zip(other.identifiers.asSequence()) { a, b ->
-            a.compareTo(b)
-        }.firstOrNull { it != 0 } ?: identifiers.size.compareTo(other.identifiers.size)
-    }
-
-    override fun toString() = identifiers.joinToString(".")
-    operator fun plus(other: PreReleaseIndicator) =
-        PreReleaseIndicator(this.identifiers + other.identifiers)
-
-    fun bump(identifier: PreReleaseIdentifier? = null) =
-        if (identifier != null) bumpSpecific(identifier)
-        else bumpSpecific(findBumpKey() ?: DEFAULT_PRERELEASE)
-
-    private fun findBumpKey(): PreReleaseIdentifier? {
-        identifiers.zipWithNext { key, value ->
-            if (key is PreReleaseIdentifier.AlphaNumeric && value is PreReleaseIdentifier.Numeric) {
-                return key
-            }
-        }
-
-        return identifiers.lastOrNull { it is PreReleaseIdentifier.AlphaNumeric }
-    }
-
-    private fun bumpSpecific(identifier: PreReleaseIdentifier): PreReleaseIndicator {
-        val replaced = sequence {
-            var i = 0
-            var found = false
-
-            while (i < identifiers.size) {
-                val k = identifiers[i]
-                if (k == identifier) {
-                    found = true
-                    if (i + 1 < identifiers.size) {
-                        val v = identifiers[i + 1]
-                        if (v is PreReleaseIdentifier.Numeric) {
-                            yield(k)
-                            yield(v.bump())
-                            i += 2
-                            continue
-                        }
-                    }
-
-                    yield(k)
-                    yield(PreReleaseIdentifier.Numeric(2.numeric))
-                    i += 1
-                    continue
-                }
-
-                yield(k)
-                i += 1
-                continue
-            }
-
-            if (!found) {
-                yield(identifier)
-                yield(identifier(1.numeric))
-            }
-        }.toList()
-
-        return copy(identifiers = replaced)
-    }
-
-    companion object {
-        fun of(vararg identifiers: PreReleaseIdentifier) = PreReleaseIndicator(listOf(*identifiers))
-        fun preRelease(string: String): PreReleaseIndicator =
-            PreReleaseIndicator(string.split('.').map { PreReleaseIdentifier.parse(it) })
-
-        private val DEFAULT_PRERELEASE = identifier("SNAPSHOT".alphanumeric)
-
-        fun start(identifier: PreReleaseIdentifier?) =
-            of(identifier ?: DEFAULT_PRERELEASE, identifier(1.numeric))
-    }
-}
 
 private fun Int.then(compare: () -> Int) = if (this == 0) compare() else this
 
-data class VersionCore(
+internal data class VersionCore(
     val major: NumericIdentifier, val minor: NumericIdentifier, val patch: NumericIdentifier
 ) : Comparable<VersionCore> {
     companion object {
@@ -211,46 +42,10 @@ data class VersionCore(
     }
 }
 
-sealed class BuildIdentifier {
-    data class AlphaNumeric(val identifier: AlphaNumericIdentifier) : BuildIdentifier() {
-        override fun toString() = identifier.toString()
-    }
-
-    data class Digits(val digits: DigitIdentifier) : BuildIdentifier() {
-        override fun toString() = digits.toString()
-    }
-
-    companion object {
-        fun of(identifier: AlphaNumericIdentifier) = AlphaNumeric(identifier)
-        fun of(digits: DigitIdentifier) = Digits(digits)
-        fun parse(string: String) =
-            if (string.all { it.digit }) of(DigitIdentifier(string))
-            else of(AlphaNumericIdentifier(string))
-    }
-}
-
-data class Build(val identifiers: List<BuildIdentifier>) {
-    init {
-        require(identifiers.isNotEmpty())
-    }
-
-    override fun toString() = identifiers.joinToString(".")
-
-    operator fun plus(build: Build): Build = Build(identifiers + build.identifiers)
-
-    companion object {
-        fun build(suffix: String) = Build(suffix.split('.').map(BuildIdentifier.Companion::parse))
-
-        val Build?.suffix get() = this?.let { "+$it" } ?: ""
-
-        infix fun Build?.add(build: Build) = this?.let { it + build } ?: build
-    }
-}
-
 sealed class Version : Comparable<Version> {
     abstract val release: Release
 
-    abstract val core: VersionCore
+    internal abstract val core: VersionCore
     abstract val build: Build?
 
     fun bump(type: ChangeType) = Release(core.bump(type))
@@ -288,7 +83,11 @@ sealed class Version : Comparable<Version> {
     }
 }
 
-data class PreRelease(override val core: VersionCore, val pre: PreReleaseIndicator, override val build: Build? = null) :
+data class PreRelease internal constructor(
+    override val core: VersionCore,
+    val pre: PreReleaseIndicator,
+    override val build: Build? = null
+) :
     Version() {
     override val release = Release(core)
 
@@ -319,7 +118,7 @@ data class PreRelease(override val core: VersionCore, val pre: PreReleaseIndicat
     }
 }
 
-data class Release(override val core: VersionCore, override val build: Build? = null) : Version() {
+data class Release internal constructor(override val core: VersionCore, override val build: Build? = null) : Version() {
     override val release = this
     override fun compareTo(other: Version): Int {
         return when (other) {
@@ -337,4 +136,8 @@ data class Release(override val core: VersionCore, override val build: Build? = 
     override fun plus(build: Build) = copy(build = this.build add build)
     override fun bumpPreRelease(identifier: PreReleaseIdentifier?) =
         PreRelease(core, PreReleaseIndicator.start(identifier))
+}
+
+enum class ChangeType {
+    PATCH, MINOR, MAJOR
 }

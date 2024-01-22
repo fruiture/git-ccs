@@ -66,7 +66,7 @@ class VersionUsageTest {
         version("1.2.3").bumpPreRelease() shouldBe version("1.2.3-SNAPSHOT.1")
         version("1.2.3").bumpPreRelease(identifier("RC".alphanumeric)) shouldBe version("1.2.3-RC.1")
 
-        val alpha = identifier("alpha".alphanumeric)
+        val alpha = identifier("alpha")
 
         version("1.2.3-beta").bumpPreRelease(alpha) shouldBe version("1.2.3-beta.alpha.1")
         version("1.2.3-alpha").bumpPreRelease(alpha) shouldBe version("1.2.3-alpha.2")

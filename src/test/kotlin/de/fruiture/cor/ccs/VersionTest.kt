@@ -84,8 +84,8 @@ class VersionTest {
             VersionCore.of(2, 1, 3),
             Build(
                 listOf(
-                    BuildIdentifier.of("build".alphanumeric),
-                    BuildIdentifier.of("000".digits)
+                    BuildIdentifier.identifier("build".alphanumeric),
+                    BuildIdentifier.identifier("000".digits)
                 )
             )
         ).toString() shouldBe "2.1.3+build.000"
@@ -97,8 +97,8 @@ class VersionTest {
             ),
             Build(
                 listOf(
-                    BuildIdentifier.of("build".alphanumeric),
-                    BuildIdentifier.of("000".digits)
+                    BuildIdentifier.identifier("build".alphanumeric),
+                    BuildIdentifier.identifier("000".digits)
                 )
             )
         ).toString() shouldBe "2.1.3-alpha+build.000"
@@ -130,7 +130,7 @@ class VersionTest {
         Version.version("1.2.3") shouldBe Release(VersionCore.of(1, 2, 3))
         Version.version("1.2.3+x23.005") shouldBe Release(
             VersionCore.of(1, 2, 3),
-            Build(listOf(BuildIdentifier.of("x23".alphanumeric), BuildIdentifier.of("005".digits)))
+            Build(listOf(BuildIdentifier.identifier("x23".alphanumeric), BuildIdentifier.identifier("005".digits)))
         )
         Version.version("1.2.3-alpha.7.go-go+x23.005") shouldBe PreRelease(
             VersionCore.of(1, 2, 3),
@@ -141,7 +141,7 @@ class VersionTest {
                     PreReleaseIdentifier.identifier("go-go".alphanumeric)
                 )
             ),
-            Build(listOf(BuildIdentifier.of("x23".alphanumeric), BuildIdentifier.of("005".digits)))
+            Build(listOf(BuildIdentifier.identifier("x23".alphanumeric), BuildIdentifier.identifier("005".digits)))
         )
 
         Version.version("1.2.3-alpha.7.go-go") shouldBe PreRelease(
