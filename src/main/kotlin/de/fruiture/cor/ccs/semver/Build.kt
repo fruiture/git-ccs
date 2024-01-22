@@ -1,4 +1,4 @@
-package de.fruiture.cor.ccs
+package de.fruiture.cor.ccs.semver
 
 sealed class BuildIdentifier {
     data class AlphaNumeric(val identifier: AlphaNumericIdentifier) : BuildIdentifier() {

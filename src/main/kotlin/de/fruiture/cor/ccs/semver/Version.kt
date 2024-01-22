@@ -1,8 +1,8 @@
-package de.fruiture.cor.ccs
+package de.fruiture.cor.ccs.semver
 
-import de.fruiture.cor.ccs.Build.Companion.add
-import de.fruiture.cor.ccs.Build.Companion.suffix
-import de.fruiture.cor.ccs.NumericIdentifier.Companion.numeric
+import de.fruiture.cor.ccs.semver.Build.Companion.add
+import de.fruiture.cor.ccs.semver.Build.Companion.suffix
+import de.fruiture.cor.ccs.semver.NumericIdentifier.Companion.numeric
 
 private fun Int.then(compare: () -> Int) = if (this == 0) compare() else this
 

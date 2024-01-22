@@ -1,8 +1,8 @@
-package de.fruiture.cor.ccs
+package de.fruiture.cor.ccs.semver
 
-import de.fruiture.cor.ccs.AlphaNumericIdentifier.Companion.alphanumeric
-import de.fruiture.cor.ccs.DigitIdentifier.Companion.digits
-import de.fruiture.cor.ccs.NumericIdentifier.Companion.numeric
+import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
+import de.fruiture.cor.ccs.semver.DigitIdentifier.Companion.digits
+import de.fruiture.cor.ccs.semver.NumericIdentifier.Companion.numeric
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

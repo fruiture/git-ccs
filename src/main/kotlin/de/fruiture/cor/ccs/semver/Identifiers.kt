@@ -1,4 +1,4 @@
-package de.fruiture.cor.ccs
+package de.fruiture.cor.ccs.semver
 
 private const val LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 private const val NON_DIGITS = "-$LETTERS"

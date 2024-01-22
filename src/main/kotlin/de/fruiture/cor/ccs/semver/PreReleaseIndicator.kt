@@ -1,8 +1,8 @@
-package de.fruiture.cor.ccs
+package de.fruiture.cor.ccs.semver
 
-import de.fruiture.cor.ccs.AlphaNumericIdentifier.Companion.alphanumeric
-import de.fruiture.cor.ccs.NumericIdentifier.Companion.numeric
-import de.fruiture.cor.ccs.PreReleaseIdentifier.Companion.identifier
+import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
+import de.fruiture.cor.ccs.semver.NumericIdentifier.Companion.numeric
+import de.fruiture.cor.ccs.semver.PreReleaseIdentifier.Companion.identifier
 
 sealed class PreReleaseIdentifier : Comparable<PreReleaseIdentifier> {
     data class AlphaNumeric(val identifier: AlphaNumericIdentifier) : PreReleaseIdentifier() {

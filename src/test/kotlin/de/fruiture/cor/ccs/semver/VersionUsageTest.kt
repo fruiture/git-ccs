@@ -1,10 +1,10 @@
-package de.fruiture.cor.ccs
+package de.fruiture.cor.ccs.semver
 
-import de.fruiture.cor.ccs.AlphaNumericIdentifier.Companion.alphanumeric
-import de.fruiture.cor.ccs.Build.Companion.build
-import de.fruiture.cor.ccs.PreReleaseIdentifier.Companion.identifier
-import de.fruiture.cor.ccs.PreReleaseIndicator.Companion.preRelease
-import de.fruiture.cor.ccs.Version.Companion.version
+import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
+import de.fruiture.cor.ccs.semver.Build.Companion.build
+import de.fruiture.cor.ccs.semver.PreReleaseIdentifier.Companion.identifier
+import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Companion.preRelease
+import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
