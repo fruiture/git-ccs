@@ -48,7 +48,7 @@ internal data class VersionCore(
     }
 }
 
-abstract sealed class Version : Comparable<Version> {
+sealed class Version : Comparable<Version> {
     abstract val release: Release
     abstract val build: Build?
 
