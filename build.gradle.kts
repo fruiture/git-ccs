@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.9.21"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "de.fruiture.cor.ccs"
@@ -14,9 +15,22 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:5.6.2")
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
 kotlin {
     jvmToolchain(21)
+}
+
+tasks {
+    test {
+        useJUnitPlatform()
+    }
+
+    shadowJar {
+        manifest {
+            attributes(mapOf("Main-Class" to "de.fruiture.cor.ccs.AppKt"))
+        }
+    }
+
+    build {
+        dependsOn(shadowJar)
+    }
 }
