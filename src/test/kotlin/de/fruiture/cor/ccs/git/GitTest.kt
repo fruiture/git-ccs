@@ -13,7 +13,7 @@ class GitTest {
         val sys = object : System {
             override fun call(command: String, arguments: List<String>): SystemCallResult {
                 command shouldBe "git"
-                arguments shouldBe listOf("describe", "--tags", "--match=\"*.*.*\"", "--abbrev=0", "HEAD")
+                arguments shouldBe listOf("describe", "--tags", "--match=*.*.*", "--abbrev=0", "HEAD")
 
                 return SystemCallResult(
                     code = 0,
@@ -34,8 +34,8 @@ class GitTest {
                 arguments shouldBe listOf(
                     "describe",
                     "--tags",
-                    "--match=\"*.*.*\"",
-                    "--exclude \"*-*\"",
+                    "--match=*.*.*",
+                    "--exclude=*-*",
                     "--abbrev=0",
                     "HEAD"
                 )
@@ -56,7 +56,7 @@ class GitTest {
         val sys = object : System {
             override fun call(command: String, arguments: List<String>): SystemCallResult {
                 command shouldBe "git"
-                arguments shouldBe listOf("describe", "--tags", "--match=\"*.*.*\"", "--abbrev=0", "HEAD")
+                arguments shouldBe listOf("describe", "--tags", "--match=*.*.*", "--abbrev=0", "HEAD")
 
                 return SystemCallResult(
                     code = 128,
