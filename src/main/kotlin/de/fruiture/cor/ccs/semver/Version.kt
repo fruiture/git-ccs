@@ -4,11 +4,19 @@ import de.fruiture.cor.ccs.semver.Build.Companion.add
 import de.fruiture.cor.ccs.semver.Build.Companion.suffix
 import de.fruiture.cor.ccs.semver.NumericIdentifier.Companion.numeric
 
+enum class ChangeType {
+    PATCH, MINOR, MAJOR
+}
+
 private fun Int.then(compare: () -> Int) = if (this == 0) compare() else this
 
 internal data class VersionCore(
     val major: NumericIdentifier, val minor: NumericIdentifier, val patch: NumericIdentifier
 ) : Comparable<VersionCore> {
+    init {
+        require((major.zero && minor.zero && patch.zero).not())
+    }
+
     companion object {
         fun of(major: Int, minor: Int, patch: Int) = VersionCore(
             NumericIdentifier(major), NumericIdentifier(minor), NumericIdentifier(patch)
@@ -26,39 +34,38 @@ internal data class VersionCore(
 
     override fun toString() = "$major.$minor.$patch"
 
-    fun bump(type: ChangeType): VersionCore {
-        return when (type) {
-            ChangeType.PATCH -> copy(patch = patch + 1)
-            ChangeType.MINOR -> copy(minor = minor + 1, patch = 0.numeric)
-            ChangeType.MAJOR -> copy(major = major + 1, minor = 0.numeric, patch = 0.numeric)
-        }
+    fun bump(type: ChangeType) = when (type) {
+        ChangeType.PATCH -> copy(patch = patch + 1)
+        ChangeType.MINOR -> copy(minor = minor + 1, patch = 0.numeric)
+        ChangeType.MAJOR -> copy(major = major + 1, minor = 0.numeric, patch = 0.numeric)
     }
 
-    operator fun minus(other: VersionCore) = when {
-        major != other.major -> ChangeType.MAJOR
-        minor != other.minor -> ChangeType.MINOR
-        patch != other.patch -> ChangeType.PATCH
-        else -> null
+    val type: ChangeType by lazy {
+        if (patch.nonZero) ChangeType.PATCH
+        else if (minor.nonZero) ChangeType.MINOR
+        else if (major.nonZero) ChangeType.MAJOR
+        else throw IllegalStateException("v0.0.0 is not defined")
     }
 }
 
-sealed class Version : Comparable<Version> {
+abstract sealed class Version : Comparable<Version> {
     abstract val release: Release
-
-    internal abstract val core: VersionCore
     abstract val build: Build?
 
-    fun bump(type: ChangeType) = Release(core.bump(type))
+    internal abstract val core: VersionCore
+    val type get() = core.type
 
     abstract fun build(suffix: String): Version
     abstract operator fun plus(preRelease: PreReleaseIndicator): PreRelease
     abstract operator fun plus(build: Build): Version
-    abstract fun bumpPreRelease(identifier: PreReleaseIdentifier? = null): PreRelease
 
-    operator fun minus(version: Version) = core - version.core
+    abstract fun next(type: ChangeType): Release
+    internal abstract fun nextPreRelease(identifier: PreReleaseIdentifier? = null): PreRelease
+    abstract fun nextPreRelease(type: ChangeType, identifier: PreReleaseIdentifier? = null): PreRelease
+
 
     companion object {
-        val initial = Release(VersionCore.of(0, 0, 0))
+        val initial = Release(VersionCore.of(0, 0, 1))
         val stable = Release(VersionCore.of(1, 0, 0))
 
         fun version(string: String): Version {
@@ -107,14 +114,20 @@ data class PreRelease internal constructor(
     override fun plus(preRelease: PreReleaseIndicator) = copy(pre = pre + preRelease)
     override fun plus(build: Build) = copy(build = this.build add build)
 
-    override fun bumpPreRelease(identifier: PreReleaseIdentifier?) = copy(pre = pre.bump(identifier), build = null)
+    override fun nextPreRelease(identifier: PreReleaseIdentifier?) =
+        copy(pre = pre.bump(identifier), build = null)
 
-    fun bumpPreRelease(lastRelease: Release, type: ChangeType, identifier: PreReleaseIdentifier? = null): PreRelease {
-        val changeToHere = (release - lastRelease) ?: ChangeType.PATCH
-        return if (changeToHere >= type)
-            bumpPreRelease(identifier)
-        else
-            release.bump(type).bumpPreRelease(identifier)
+    override fun next(type: ChangeType): Release {
+        val changeToHere = release.type
+        return if (changeToHere >= type) release
+        else release.next(type)
+    }
+
+
+    override fun nextPreRelease(type: ChangeType, identifier: PreReleaseIdentifier?): PreRelease {
+        val changeToHere = release.type
+        return if (changeToHere >= type) nextPreRelease(identifier)
+        else release.next(type).nextPreRelease(identifier)
     }
 }
 
@@ -130,14 +143,15 @@ data class Release internal constructor(override val core: VersionCore, override
     override fun toString() = "$core${build.suffix}"
 
     fun preRelease(suffix: String) = plus(PreReleaseIndicator.preRelease(suffix))
-
     override fun build(suffix: String) = copy(build = Build.build(suffix))
+
     override fun plus(preRelease: PreReleaseIndicator) = PreRelease(core, preRelease, build)
     override fun plus(build: Build) = copy(build = this.build add build)
-    override fun bumpPreRelease(identifier: PreReleaseIdentifier?) =
-        PreRelease(core, PreReleaseIndicator.start(identifier))
-}
 
-enum class ChangeType {
-    PATCH, MINOR, MAJOR
+    override fun next(type: ChangeType) = Release(core.bump(type))
+    override fun nextPreRelease(identifier: PreReleaseIdentifier?) =
+        PreRelease(core, PreReleaseIndicator.start(identifier))
+
+    override fun nextPreRelease(type: ChangeType, identifier: PreReleaseIdentifier?) =
+        next(type).nextPreRelease(identifier)
 }

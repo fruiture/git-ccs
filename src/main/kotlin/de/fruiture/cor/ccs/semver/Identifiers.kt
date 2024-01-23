@@ -7,8 +7,8 @@ private const val DIGITS = "0$POSITIVE_DIGITS"
 private const val IDENTIFIER_CHARACTERS = "$NON_DIGITS$DIGITS"
 
 internal val Char.digit get() = this in DIGITS
-internal  val Char.nonDigit get() = this in NON_DIGITS
-internal  val Char.identifier get() = this in IDENTIFIER_CHARACTERS
+internal val Char.nonDigit get() = this in NON_DIGITS
+internal val Char.identifier get() = this in IDENTIFIER_CHARACTERS
 
 @JvmInline
 value class AlphaNumericIdentifier(private val value: String) : Comparable<AlphaNumericIdentifier> {
@@ -38,6 +38,9 @@ value class NumericIdentifier(private val value: Int) : Comparable<NumericIdenti
         require(i >= 0)
         return NumericIdentifier(value + i)
     }
+
+    val zero get() = value == 0
+    val nonZero get() = !zero
 
     companion object {
         val Int.numeric get() = NumericIdentifier(this)
