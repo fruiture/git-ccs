@@ -4,7 +4,10 @@ import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.git.Git
 import de.fruiture.cor.ccs.git.ProcessCaller
 import de.fruiture.cor.ccs.git.System
+import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.ChangeType
+import de.fruiture.cor.ccs.semver.PreReleaseIdentifier.Companion.identifier
+import de.fruiture.cor.ccs.semver.Version
 import kotlin.system.exitProcess
 
 class App(sys: System) {
@@ -17,11 +20,23 @@ class App(sys: System) {
 
     fun getNextRelease(): String {
         val latestVersion = git.getLatestVersion()!!
-        val changeType = git.getLog(latestVersion)
-            .mapNotNull { it.conventionalCommit }
-            .maxOfOrNull { types.getOrDefault(it.type, ChangeType.PATCH) }
-            ?: ChangeType.PATCH
+        val changeType = getChangeType(latestVersion)
         return latestVersion.next(changeType).toString()
+    }
+
+    private fun getChangeType(latestVersion: Version) = (git.getLog(latestVersion)
+        .mapNotNull { it.conventionalCommit }
+        .maxOfOrNull { types.getOrDefault(it.type, ChangeType.PATCH) }
+        ?: ChangeType.PATCH)
+
+    fun getNextPreRelease(label: String? = null): String {
+        val latestVersion = git.getLatestVersion()!!
+        val changeType = getChangeType(latestVersion)
+
+        return latestVersion.nextPreRelease(
+            changeType,
+            label?.let { identifier(it.alphanumeric) }
+        ).toString()
     }
 }
 
@@ -31,6 +46,8 @@ fun main(args: Array<String>) {
 
     if (cmd == listOf("next", "release")) {
         println(app.getNextRelease())
+    } else if (cmd.take(2) == listOf("next", "pre-release")) {
+        println(app.getNextPreRelease(cmd.getOrNull(2)))
     } else {
         java.lang.System.err.println("unknown command $cmd")
         exitProcess(1)
