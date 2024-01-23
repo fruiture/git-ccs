@@ -115,22 +115,22 @@ data class ConventionalCommitMessage(
         }
 
         private fun headline(headline: String): ConventionalCommitMessage {
-            return Regex("(\\w+)(?:\\((\\w+)\\))?(!)?: (.+)").matchEntire(headline)?.destructured?.let { (type, scope, excl, description) ->
-                return ConventionalCommitMessage(
-                    type = Type(type),
-                    description = Description(description),
-                    scope = if (scope.isNotEmpty()) Scope(scope) else null,
-                    headlineBreakingChange = excl.isNotEmpty()
-                )
-            } ?: throw IllegalArgumentException("no valid headline: '$headline‘")
+            return Regex("(\\w+)(?:\\((\\w+)\\))?(!)?: (.+)")
+                .matchEntire(headline)?.destructured?.let { (type, scope, excl, description) ->
+                    return ConventionalCommitMessage(
+                        type = Type(type),
+                        description = Description(description),
+                        scope = if (scope.isNotEmpty()) Scope(scope) else null,
+                        headlineBreakingChange = excl.isNotEmpty()
+                    )
+                } ?: throw IllegalArgumentException("no valid headline: '$headline‘")
         }
 
         private fun footers(paragraph: String) =
             Regex("^([\\S-]+|BREAKING CHANGE): (.+?)$", RegexOption.MULTILINE).findAll(paragraph)
                 .map { it.destructured }
-                .map { (k, v) ->
-                    footer(k, v)
-                }.toList()
+                .map { (k, v) -> footer(k, v) }
+                .toList()
 
         private fun footer(k: String, v: String) =
             if (k == "BREAKING CHANGE" || k == "BREAKING-CHANGE") BreakingChange(k, v)

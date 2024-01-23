@@ -4,6 +4,7 @@ import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.ZonedDateTime
 
 class GitTest {
 
@@ -82,5 +83,47 @@ class GitTest {
         }
 
         assertThrows<RuntimeException> { Git(sys).getLatestVersion() }
+    }
+
+    @Test
+    fun `get machine readable log`() {
+        val sys = object : System {
+            override fun call(command: String, arguments: List<String>): SystemCallResult {
+                command shouldBe "git"
+                arguments shouldBe listOf("log", "--format=format:'%H %aI%n%B%n'", "-z", "1.0.0..HEAD")
+
+                return SystemCallResult(
+                    code = 0,
+                    stdout = """
+                        948f00f8b349c6f9652809f924254ffe7a497227 2024-01-20T21:51:33+01:00
+                        feat: blablabla
+
+                        BREAKING CHANGE: did something dudu here
+
+                        ${Char.MIN_VALUE}b8d181d9e803da9ceba0c3c4918317124d678656 2024-01-20T21:31:01+01:00
+                        non conventional commit
+                    """.trimIndent().lines()
+                )
+            }
+        }
+
+        Git(sys).getLog(
+            from = version("1.0.0")
+        ) shouldBe listOf(
+            GitCommit(
+                hash = "948f00f8b349c6f9652809f924254ffe7a497227",
+                date = ZonedDateTime.parse("2024-01-20T21:51:33+01:00"),
+                message = """
+                    feat: blablabla
+
+                    BREAKING CHANGE: did something dudu here
+                """.trimIndent()
+            ),
+            GitCommit(
+                hash = "b8d181d9e803da9ceba0c3c4918317124d678656",
+                date = ZonedDateTime.parse("2024-01-20T21:31:01+01:00"),
+                message = "non conventional commit"
+            )
+        )
     }
 }
