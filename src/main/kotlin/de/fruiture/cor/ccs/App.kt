@@ -3,7 +3,7 @@ package de.fruiture.cor.ccs
 import de.fruiture.cor.ccs.cc.ConventionalCommitMessage
 import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.cmd.Command
-import de.fruiture.cor.ccs.cmd.Default
+import de.fruiture.cor.ccs.cmd.DefaultIO
 import de.fruiture.cor.ccs.cmd.IO
 import de.fruiture.cor.ccs.git.Git
 import de.fruiture.cor.ccs.git.GitCommit
@@ -68,7 +68,7 @@ internal data object Root : Command<App>("Conventional Commits & Semantic Versio
     "next" to object : Command<App>("compute next version",
         "release" to object : Command<App>("compute next release version (no pre-release) -> 1.2.3") {
             override fun execute(app: App, io: IO) {
-                print(app.getNextRelease())
+                io.out.print(app.getNextRelease())
             }
         },
         "pre-release" to object : Command<App>("compute next pre-release version") {
@@ -98,7 +98,7 @@ internal data object Root : Command<App>("Conventional Commits & Semantic Versio
 
 fun main(args: Array<String>) {
     val app = App(JvmProcessCaller())
-    val io = Default
+    val io = DefaultIO
 
     try {
         Root.getCommand(args.toList()).execute(app, io)

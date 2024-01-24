@@ -15,6 +15,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.10")
     testImplementation("io.kotest:kotest-assertions-core:5.6.2")
+    testImplementation("io.mockk:mockk:1.13.9")
 }
 
 kotlin {
@@ -24,6 +25,7 @@ kotlin {
 tasks {
     test {
         useJUnitPlatform()
+        jvmArgs("-XX:+EnableDynamicAgentLoading")
     }
 
     shadowJar {

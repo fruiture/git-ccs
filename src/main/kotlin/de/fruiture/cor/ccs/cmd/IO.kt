@@ -10,7 +10,7 @@ interface IO {
     val err: Output
 }
 
-object Default : IO {
+object DefaultIO : IO {
     override val out = object : Output {
         override fun print(text: String) {
             kotlin.io.print(text)
