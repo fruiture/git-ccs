@@ -26,8 +26,10 @@ class Git(private val sys: System) {
         }
     }
 
-    fun getLog(from: Version): List<GitCommit> {
-        val arguments = listOf("log", "--format=format:'%H %aI%n%B%n'", "-z", "${from}..HEAD")
+    fun getLog(from: Version? = null): List<GitCommit> {
+        val arguments = listOf("log", "--format=format:%H %aI%n%B%n", "-z",
+            from?.let { "$it..HEAD" } ?: "HEAD"
+        )
         val result = sys.call("git", arguments)
 
         if (result.code != 0) {

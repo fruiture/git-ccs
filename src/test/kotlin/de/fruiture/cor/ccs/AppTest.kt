@@ -15,7 +15,7 @@ class AppTest {
                 SystemCallResult(
                     code = 0,
                     stdout = """
-                            cafebabe 2001-01-01T13:00:00Z
+                            cafebabe 2001-01-01T13:00Z
                             feat: a feature is born
                         """.trimIndent().lines()
                 )
@@ -38,7 +38,15 @@ class AppTest {
         override fun call(command: String, arguments: List<String>): SystemCallResult {
             return if (arguments.first() == "describe")
                 SystemCallResult(code = 128, stderr = listOf("fatal: No tags can describe ..."))
-            else throw IllegalArgumentException()
+            else if (arguments.first() == "log" && arguments.last() == "HEAD") {
+                SystemCallResult(
+                    code = 0,
+                    stdout = """
+                            cafebabe 2001-01-01T13:00Z
+                            feat: a feature is born
+                        """.trimIndent().lines()
+                )
+            } else throw IllegalArgumentException()
         }
     }
 
@@ -47,5 +55,39 @@ class AppTest {
         App(noReleaseYet).getNextRelease() shouldBe "0.0.1"
         App(noReleaseYet).getNextPreRelease("RC") shouldBe "0.0.1-RC.1"
         App(noReleaseYet).getNextPreRelease() shouldBe "0.0.1-SNAPSHOT.1"
+    }
+
+    @Test
+    fun `get change log`() {
+        App(oneFeatureAfterMajorRelease).getChangeLog() shouldBe
+                """[{"hash":"cafebabe","date":"2001-01-01T13:00Z","message":"feat: a feature is born",""" +
+                """"conventionalCommit":{"type":"feat","description":"a feature is born"}}]"""
+
+        App(noReleaseYet).getChangeLog() shouldBe
+                """[{"hash":"cafebabe","date":"2001-01-01T13:00Z","message":"feat: a feature is born",""" +
+                """"conventionalCommit":{"type":"feat","description":"a feature is born"}}]"""
+    }
+
+
+    private val hadABreakingChange = object : System {
+        override fun call(command: String, arguments: List<String>): SystemCallResult {
+            return if (arguments.first() == "describe")
+                SystemCallResult(code = 0, stdout = listOf("1.2.3-SNAPSHOT.5"))
+            else if (arguments.first() == "log" && arguments.last() == "1.2.3-SNAPSHOT.5..HEAD") {
+                SystemCallResult(
+                    code = 0,
+                    stdout = """
+                            cafebabe 2001-01-01T13:00Z
+                            feat!: a feature with a breaking change
+                        """.trimIndent().lines()
+                )
+            } else throw IllegalArgumentException()
+        }
+    }
+
+    @Test
+    fun `breaking change is recognized`() {
+        App(hadABreakingChange).getNextRelease() shouldBe "2.0.0"
+        App(hadABreakingChange).getNextPreRelease() shouldBe "2.0.0-SNAPSHOT.1"
     }
 }

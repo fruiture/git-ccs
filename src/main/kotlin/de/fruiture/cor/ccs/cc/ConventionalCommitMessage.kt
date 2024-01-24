@@ -1,8 +1,15 @@
 package de.fruiture.cor.ccs.cc
 
 import de.fruiture.cor.ccs.cc.Scope.Companion.suffix
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.mapSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 @JvmInline
+@Serializable
 value class Type(private val value: String) {
     init {
         require(value.isNotBlank())
@@ -12,6 +19,7 @@ value class Type(private val value: String) {
 }
 
 @JvmInline
+@Serializable
 value class Description(val value: String) {
     init {
         require(value.isNotBlank())
@@ -22,6 +30,7 @@ value class Description(val value: String) {
 
 
 @JvmInline
+@Serializable
 value class Body(private val value: String) {
     constructor(paragraphs: List<String>) : this(paragraphs.joinToString("\n\n"))
 
@@ -51,6 +60,7 @@ data class GenericFooter(override val key: String, override val value: String) :
 private val VALID_KEYS = listOf("BREAKING CHANGE", "BREAKING-CHANGE")
 private val DEFAULT_KEY = VALID_KEYS.first()
 
+@Serializable
 data class BreakingChange(override val key: String, override val value: String) : Footer() {
     constructor(value: String) : this(DEFAULT_KEY, value)
 
@@ -63,6 +73,7 @@ data class BreakingChange(override val key: String, override val value: String) 
 }
 
 @JvmInline
+@Serializable
 value class Scope(private val value: String) {
     init {
         require(value.isNotBlank())
@@ -75,24 +86,30 @@ value class Scope(private val value: String) {
     }
 }
 
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
 data class ConventionalCommitMessage(
     val type: Type,
     val description: Description,
     val scope: Scope? = null,
     val body: Body? = null,
-    val footers: List<Footer> = emptyList(),
+    val footers: @Serializable(with = FootersSerializer::class) List<@Contextual Footer> = emptyList(),
     val headlineBreakingChange: Boolean = false
 ) {
     private val exclamation: String get() = if (headlineBreakingChange) "!" else ""
-
-    val breakingChange: BreakingChange? by lazy {
+    private val effectiveBreakingChange: BreakingChange? =
         if (headlineBreakingChange) BreakingChange(description.value)
         else footers.filterIsInstance<BreakingChange>().firstOrNull()
-    }
+
+    @EncodeDefault
+    val breakingChange = effectiveBreakingChange?.value
+
+    val hasBreakingChange: Boolean = breakingChange != null
 
     companion object {
         fun message(text: String): ConventionalCommitMessage {
-            val paragraphs = text.split(Regex("\\n\\n"))
+            val paragraphs = text.split(Regex("\\n\\n")).map(String::trim).filter(String::isNotEmpty)
 
             val headline = headline(paragraphs.first())
             val tail = paragraphs.drop(1)
@@ -135,6 +152,20 @@ data class ConventionalCommitMessage(
         private fun footer(k: String, v: String) =
             if (k == "BREAKING CHANGE" || k == "BREAKING-CHANGE") BreakingChange(k, v)
             else GenericFooter(k, v)
+
+        object FootersSerializer : KSerializer<List<Footer>> {
+            override val descriptor = mapSerialDescriptor<String, String>()
+            private val mapSerializer = MapSerializer(String.serializer(), String.serializer())
+
+            override fun deserialize(decoder: Decoder): List<Footer> {
+                return decoder.decodeSerializableValue(mapSerializer)
+                    .map { (k, v) -> footer(k, v) }
+            }
+
+            override fun serialize(encoder: Encoder, value: List<Footer>) {
+                return encoder.encodeSerializableValue(mapSerializer, value.associate { it.key to it.value })
+            }
+        }
     }
 
     private operator fun plus(footers: List<Footer>) =

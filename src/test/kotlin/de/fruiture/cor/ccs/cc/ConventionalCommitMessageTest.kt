@@ -64,18 +64,22 @@ class ConventionalCommitMessageTest {
 
     @Test
     fun `breaking change in headline`() {
-        message("fix!: bugfix breaks API").breakingChange shouldBe BreakingChange("bugfix breaks API")
+        message("fix!: bugfix breaks API").breakingChange shouldBe "bugfix breaks API"
     }
 
     @Test
-    fun `breaking change in the footer`() {
+    fun `breaking change in the footer (and useless newlines)`() {
         message(
             """
             feat: cool stuff
             
             BREAKING CHANGE: but the api changes
+            
+            BREAKING CHANGE: but the api changes
+            
+            
         """.trimIndent()
-        ).breakingChange shouldBe BreakingChange("but the api changes")
+        ).breakingChange shouldBe "but the api changes"
     }
 
     @Test
@@ -91,7 +95,7 @@ class ConventionalCommitMessageTest {
             BREAKING CHANGE: but the api changes
         """.trimIndent()
         )
-        msg.breakingChange shouldBe BreakingChange("but the api changes")
+        msg.breakingChange shouldBe "but the api changes"
         msg.body shouldBe Body(
             """
             Paragraph1
@@ -112,7 +116,7 @@ class ConventionalCommitMessageTest {
         """.trimIndent()
         )
 
-        msg.breakingChange shouldBe BreakingChange("Me too")
+        msg.breakingChange shouldBe "Me too"
         msg.footers shouldBe listOf(
             GenericFooter("Done-By", "Me"),
             BreakingChange("Me too")
@@ -130,7 +134,8 @@ class ConventionalCommitMessageTest {
 
     @Test
     fun `all aspects in and out`() {
-        message("""
+        message(
+            """
             fun(fun)!: Fun
             
             Fun Fun Fun!
@@ -139,7 +144,8 @@ class ConventionalCommitMessageTest {
             
             Done-By: Me
             BREAKING-CHANGE: Me too
-        """.trimIndent()).toString() shouldBe """
+        """.trimIndent()
+        ).toString() shouldBe """
             fun(fun)!: Fun
             
             Fun Fun Fun!

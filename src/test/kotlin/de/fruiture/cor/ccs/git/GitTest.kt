@@ -90,7 +90,7 @@ class GitTest {
         val sys = object : System {
             override fun call(command: String, arguments: List<String>): SystemCallResult {
                 command shouldBe "git"
-                arguments shouldBe listOf("log", "--format=format:'%H %aI%n%B%n'", "-z", "1.0.0..HEAD")
+                arguments shouldBe listOf("log", "--format=format:%H %aI%n%B%n", "-z", "1.0.0..HEAD")
 
                 return SystemCallResult(
                     code = 0,
@@ -119,6 +119,32 @@ class GitTest {
                     BREAKING CHANGE: did something dudu here
                 """.trimIndent()
             ),
+            GitCommit(
+                hash = "b8d181d9e803da9ceba0c3c4918317124d678656",
+                date = ZonedDateTime.parse("2024-01-20T21:31:01+01:00"),
+                message = "non conventional commit"
+            )
+        )
+    }
+
+    @Test
+    fun `get full log`() {
+        val sys = object : System {
+            override fun call(command: String, arguments: List<String>): SystemCallResult {
+                command shouldBe "git"
+                arguments shouldBe listOf("log", "--format=format:%H %aI%n%B%n", "-z", "HEAD")
+
+                return SystemCallResult(
+                    code = 0,
+                    stdout = """
+                        b8d181d9e803da9ceba0c3c4918317124d678656 2024-01-20T21:31:01+01:00
+                        non conventional commit
+                    """.trimIndent().lines()
+                )
+            }
+        }
+
+        Git(sys).getLog() shouldBe listOf(
             GitCommit(
                 hash = "b8d181d9e803da9ceba0c3c4918317124d678656",
                 date = ZonedDateTime.parse("2024-01-20T21:31:01+01:00"),
