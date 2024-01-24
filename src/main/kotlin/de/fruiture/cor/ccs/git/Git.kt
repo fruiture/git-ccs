@@ -4,7 +4,7 @@ import de.fruiture.cor.ccs.semver.Release
 import de.fruiture.cor.ccs.semver.Version
 import java.time.ZonedDateTime
 
-class Git(private val sys: System) {
+class Git(private val sys: SystemCaller) {
     fun getLatestVersion(): Version? {
         return getLatestTagAsVersion(false)
     }

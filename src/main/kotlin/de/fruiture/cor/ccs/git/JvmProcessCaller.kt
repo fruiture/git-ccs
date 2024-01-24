@@ -3,7 +3,7 @@ package de.fruiture.cor.ccs.git
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-class ProcessCaller(private val timeoutMillis: Long = 1_000) : System {
+class JvmProcessCaller(private val timeoutMillis: Long = 1_000) : SystemCaller {
     override fun call(command: String, arguments: List<String>): SystemCallResult {
         val process = ProcessBuilder(listOf(command) + arguments).start()
         try {

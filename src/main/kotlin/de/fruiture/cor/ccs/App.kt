@@ -2,10 +2,13 @@ package de.fruiture.cor.ccs
 
 import de.fruiture.cor.ccs.cc.ConventionalCommitMessage
 import de.fruiture.cor.ccs.cc.Type
+import de.fruiture.cor.ccs.cmd.Command
+import de.fruiture.cor.ccs.cmd.Default
+import de.fruiture.cor.ccs.cmd.IO
 import de.fruiture.cor.ccs.git.Git
 import de.fruiture.cor.ccs.git.GitCommit
-import de.fruiture.cor.ccs.git.ProcessCaller
-import de.fruiture.cor.ccs.git.System
+import de.fruiture.cor.ccs.git.JvmProcessCaller
+import de.fruiture.cor.ccs.git.SystemCaller
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.ChangeType
 import de.fruiture.cor.ccs.semver.PreReleaseIdentifier
@@ -17,7 +20,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class App(
-    sys: System,
+    sys: SystemCaller,
     private val types: Map<Type, ChangeType> = mapOf(
         Type("feat") to ChangeType.MINOR,
         Type("fix") to ChangeType.PATCH
@@ -61,80 +64,48 @@ class App(
     }
 }
 
-internal abstract class Command(
-    val description: String,
-    private val subcommands: Map<String, Command>
-) {
-    constructor(
-        description: String,
-        vararg subcommands: Pair<String, Command>
-    ) : this(description, subcommands.toMap())
-
-    private fun help() = object : Command("show help for $description") {
-        override fun execute(app: App) {
-            println(this@Command.description)
-            this@Command.getHelp().forEach { println(it) }
-            println("use --help at any point to get help")
-        }
-    }
-
-    private fun unexpected(key: String) = object : Command("unexpected '$key'") {
-        override fun execute(app: App) {
-            println(description)
-            this@Command.help().execute(app)
-        }
-    }
-
-    protected open fun getHelp(): List<String> = subcommands.entries.mapIndexed { i, (key, command) ->
-        val marker = if (i == 0) "•" else "·"
-        listOf("$marker $key — ${command.description}") + command.getHelp().map { "  $it" }
-    }.flatten()
-
-    fun subcommand(key: String) = if (key == "--help") help() else getSubcommand(key)
-
-    protected open fun getSubcommand(key: String) =
-        subcommands[key] ?: unexpected(key)
-
-
-    open fun execute(app: App) {
-        subcommands.values.first().execute(app)
-    }
-}
-
-internal data object Root : Command("Conventional Commits & Semantic Versioning",
-    "next" to object : Command("compute next version",
-        "release" to object : Command("compute next release version (no pre-release) -> 1.2.3") {
-            override fun execute(app: App) {
+internal data object Root : Command<App>("Conventional Commits & Semantic Versioning",
+    "next" to object : Command<App>("compute next version",
+        "release" to object : Command<App>("compute next release version (no pre-release) -> 1.2.3") {
+            override fun execute(app: App, io: IO) {
                 print(app.getNextRelease())
             }
         },
-        "pre-release" to object : Command("compute next pre-release version") {
+        "pre-release" to object : Command<App>("compute next pre-release version") {
             override fun getHelp() = listOf(
                 "• <pre-release identifier> – alphanumeric string (default: 'SNAPSHOT') -> '1.2.3-SNAPSHOT.4')"
             )
 
-            override fun getSubcommand(key: String) = object : Command(
+            override fun getSubcommand(key: String) = object : Command<App>(
                 "compute pre-release with identifier '$key' -> '1.2.3-$key.4'"
             ) {
-                override fun execute(app: App) {
-                    print(app.getNextPreRelease(key))
+                override fun execute(app: App, io: IO) {
+                    io.out.print(app.getNextPreRelease(key))
                 }
             }
 
-            override fun execute(app: App) {
-                print(app.getNextPreRelease())
+            override fun execute(app: App, io: IO) {
+                io.out.print(app.getNextPreRelease())
             }
         }
     ) {},
-    "log" to object : Command("get change log since last version (as JSON)") {
-        override fun execute(app: App) {
-            println(app.getChangeLog())
+    "log" to object : Command<App>("get change log since last version (as JSON)") {
+        override fun execute(app: App, io: IO) {
+            io.out.println(app.getChangeLog())
         }
     }
 )
 
 fun main(args: Array<String>) {
-    val app = App(ProcessCaller())
+    val app = App(JvmProcessCaller())
+    val io = Default
 
-    args.toList().fold(Root, Command::subcommand).execute(app)
+    try {
+        Root.getCommand(args.toList()).execute(app, io)
+    } catch (e: Exception) {
+        e.message?.let(io.err::println)
+        e::class.qualifiedName?.let(io.err::println)
+        e.stackTrace.first().toString().let(io.err::println)
+    }
 }
+

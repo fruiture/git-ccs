@@ -9,11 +9,11 @@ import org.junit.jupiter.api.condition.OS
 import java.util.concurrent.TimeoutException
 
 @EnabledOnOs(OS.LINUX, OS.MAC)
-class ProcessCallerTest {
+class JvmProcessCallerTest {
 
     @Test
     fun `invoke git -v`() {
-        val result = ProcessCaller().call("git", listOf("-v"))
+        val result = JvmProcessCaller().call("git", listOf("-v"))
 
         result.code shouldBe 0
         result.stderr shouldBe emptyList()
@@ -22,7 +22,7 @@ class ProcessCallerTest {
 
     @Test
     fun `invoke git -invalid-option`() {
-        val result = ProcessCaller().call("git", listOf("-invalid-option"))
+        val result = JvmProcessCaller().call("git", listOf("-invalid-option"))
 
         result.code shouldBe 129
         result.stderr.first() shouldBe "unknown option: -invalid-option"
@@ -30,6 +30,6 @@ class ProcessCallerTest {
 
     @Test
     fun `invoke sleep and hit timeout`() {
-        assertThrows<TimeoutException> { ProcessCaller(50).call("sleep", listOf("1")) }
+        assertThrows<TimeoutException> { JvmProcessCaller(50).call("sleep", listOf("1")) }
     }
 }

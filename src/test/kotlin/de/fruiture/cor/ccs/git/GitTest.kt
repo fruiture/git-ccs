@@ -10,7 +10,7 @@ class GitTest {
 
     @Test
     fun `find the latest version tag`() {
-        val sys = object : System {
+        val sys = object : SystemCaller {
             override fun call(command: String, arguments: List<String>): SystemCallResult {
                 command shouldBe "git"
                 arguments shouldBe listOf("describe", "--tags", "--match=*.*.*", "--abbrev=0", "HEAD")
@@ -28,7 +28,7 @@ class GitTest {
 
     @Test
     fun `get latest release version tag`() {
-        val sys = object : System {
+        val sys = object : SystemCaller {
             override fun call(command: String, arguments: List<String>): SystemCallResult {
                 command shouldBe "git"
                 arguments shouldBe listOf(
@@ -53,7 +53,7 @@ class GitTest {
 
     @Test
     fun `no release found`() {
-        val sys = object : System {
+        val sys = object : SystemCaller {
             override fun call(command: String, arguments: List<String>): SystemCallResult {
                 command shouldBe "git"
                 arguments shouldBe listOf("describe", "--tags", "--match=*.*.*", "--abbrev=0", "HEAD")
@@ -73,7 +73,7 @@ class GitTest {
 
     @Test
     fun `any error`() {
-        val sys = object : System {
+        val sys = object : SystemCaller {
             override fun call(command: String, arguments: List<String>): SystemCallResult {
                 return SystemCallResult(
                     code = 127,
@@ -87,7 +87,7 @@ class GitTest {
 
     @Test
     fun `get machine readable log`() {
-        val sys = object : System {
+        val sys = object : SystemCaller {
             override fun call(command: String, arguments: List<String>): SystemCallResult {
                 command shouldBe "git"
                 arguments shouldBe listOf("log", "--format=format:%H %aI%n%B%n", "-z", "1.0.0..HEAD")
@@ -129,7 +129,7 @@ class GitTest {
 
     @Test
     fun `get full log`() {
-        val sys = object : System {
+        val sys = object : SystemCaller {
             override fun call(command: String, arguments: List<String>): SystemCallResult {
                 command shouldBe "git"
                 arguments shouldBe listOf("log", "--format=format:%H %aI%n%B%n", "-z", "HEAD")

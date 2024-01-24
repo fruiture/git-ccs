@@ -1,13 +1,13 @@
 package de.fruiture.cor.ccs
 
-import de.fruiture.cor.ccs.git.System
 import de.fruiture.cor.ccs.git.SystemCallResult
+import de.fruiture.cor.ccs.git.SystemCaller
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class AppTest {
 
-    private val oneFeatureAfterMajorRelease = object : System {
+    private val oneFeatureAfterMajorRelease = object : SystemCaller {
         override fun call(command: String, arguments: List<String>): SystemCallResult {
             return if (arguments.first() == "describe")
                 SystemCallResult(code = 0, stdout = listOf("1.0.0"))
@@ -34,7 +34,7 @@ class AppTest {
         App(oneFeatureAfterMajorRelease).getNextPreRelease("alpha") shouldBe "1.1.0-alpha.1"
     }
 
-    private val noReleaseYet = object : System {
+    private val noReleaseYet = object : SystemCaller {
         override fun call(command: String, arguments: List<String>): SystemCallResult {
             return if (arguments.first() == "describe")
                 SystemCallResult(code = 128, stderr = listOf("fatal: No tags can describe ..."))
@@ -69,7 +69,7 @@ class AppTest {
     }
 
 
-    private val hadABreakingChange = object : System {
+    private val hadABreakingChange = object : SystemCaller {
         override fun call(command: String, arguments: List<String>): SystemCallResult {
             return if (arguments.first() == "describe")
                 SystemCallResult(code = 0, stdout = listOf("1.2.3-SNAPSHOT.5"))

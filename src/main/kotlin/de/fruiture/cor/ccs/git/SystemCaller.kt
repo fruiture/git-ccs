@@ -1,6 +1,6 @@
 package de.fruiture.cor.ccs.git
 
-interface System {
+interface SystemCaller {
     fun call(command: String, arguments: List<String> = emptyList()): SystemCallResult
 }
 
