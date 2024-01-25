@@ -30,7 +30,7 @@ tasks {
 
     shadowJar {
         manifest {
-            attributes(mapOf("Main-Class" to "de.fruiture.cor.ccs.AppKt"))
+            attributes(mapOf("Main-Class" to "de.fruiture.cor.ccs.CLI"))
         }
     }
 

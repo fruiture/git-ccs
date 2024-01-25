@@ -38,7 +38,7 @@ class TestIO : IO {
     }
 }
 
-class CommandRootTest {
+class CLITest {
 
     private val app = mockk<App>(relaxed = true)
     private val io = TestIO()
@@ -51,42 +51,42 @@ class CommandRootTest {
 
     @Test
     fun `explicit next release`() {
-        Root.getCommand(listOf("next", "release")).execute(app, io)
+        CLI.getCommand(listOf("next", "release")).execute(app, io)
         verify { app.getNextRelease() }
         io.stdout shouldBe "1.2.3"
     }
 
     @Test
     fun `implicit next`() {
-        Root.getCommand(listOf("next")).execute(app, io)
+        CLI.getCommand(listOf("next")).execute(app, io)
         verify { app.getNextRelease() }
         io.stdout shouldBe "1.2.3"
     }
 
     @Test
     fun `default command`() {
-        Root.getCommand(emptyList()).execute(app, io)
+        CLI.getCommand(emptyList()).execute(app, io)
         verify { app.getNextRelease() }
         io.stdout shouldBe "1.2.3"
     }
 
     @Test
     fun `next pre-release`() {
-        Root.getCommand(listOf("next", "pre-release")).execute(app, io)
+        CLI.getCommand(listOf("next", "pre-release")).execute(app, io)
         verify { app.getNextPreRelease() }
         io.stdout shouldBe "1.2.3-SNAPSHOT.5"
     }
 
     @Test
     fun `next pre-release RC`() {
-        Root.getCommand(listOf("next", "pre-release", "RC")).execute(app, io)
+        CLI.getCommand(listOf("next", "pre-release", "RC")).execute(app, io)
         verify { app.getNextPreRelease("RC") }
         io.stdout shouldBe "1.2.3-RC.1"
     }
 
     @Test
     fun `show help`() {
-        Root.getCommand(listOf("next", "--help")).execute(app, io)
+        CLI.getCommand(listOf("next", "--help")).execute(app, io)
         verify { app wasNot called }
         io.stdout shouldBe """
             compute next version
@@ -100,7 +100,7 @@ class CommandRootTest {
 
     @Test
     fun `dynamic help`() {
-        Root.getCommand(listOf("next","pre-release","beta","--help")).execute(app,io)
+        CLI.getCommand(listOf("next", "pre-release", "beta", "--help")).execute(app, io)
         verify { app wasNot called }
         io.stdout shouldBe """
             compute pre-release with identifier 'beta' -> '1.2.3-beta.4'
@@ -111,7 +111,7 @@ class CommandRootTest {
 
     @Test
     fun `illegal command`() {
-        Root.getCommand(listOf("NOPE")).execute(app,io)
+        CLI.getCommand(listOf("NOPE")).execute(app, io)
         verify { app wasNot called }
         io.stderr shouldStartWith """
             unexpected 'NOPE'
