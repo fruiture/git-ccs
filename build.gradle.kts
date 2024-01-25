@@ -13,6 +13,7 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("com.github.ajalt.clikt:clikt:4.2.2")
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.10")
     testImplementation("io.kotest:kotest-assertions-core:5.6.2")
     testImplementation("io.mockk:mockk:1.13.9")
@@ -30,7 +31,7 @@ tasks {
 
     shadowJar {
         manifest {
-            attributes(mapOf("Main-Class" to "de.fruiture.cor.ccs.CLI"))
+            attributes(mapOf("Main-Class" to "de.fruiture.cor.ccs.CCSKt"))
         }
     }
 

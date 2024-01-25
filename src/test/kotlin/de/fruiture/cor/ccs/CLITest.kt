@@ -1,122 +1,66 @@
 package de.fruiture.cor.ccs
 
-import de.fruiture.cor.ccs.cmd.IO
-import de.fruiture.cor.ccs.cmd.Output
+import com.github.ajalt.clikt.testing.test
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldStartWith
 import io.mockk.called
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 
-class TestIO : IO {
-    val captureOut = StringBuilder()
-    val captureErr = StringBuilder()
-
-    val stdout get() = captureOut.toString()
-    val stderr get() = captureErr.toString()
-
-    override val out = object : Output {
-        override fun print(text: String) {
-            captureOut.append(text)
-        }
-
-        override fun println(text: String) {
-            captureOut.appendLine(text)
-        }
-
-    }
-    override val err = object : Output {
-        override fun print(text: String) {
-            captureErr.append(text)
-        }
-
-        override fun println(text: String) {
-            captureErr.appendLine(text)
-        }
-    }
-}
-
 class CLITest {
 
     private val app = mockk<App>(relaxed = true)
-    private val io = TestIO()
+    private val ccs = CCS(app)
 
     init {
         every { app.getNextRelease() } returns "1.2.3"
-        every { app.getNextPreRelease() } returns "1.2.3-SNAPSHOT.5"
+        every { app.getNextPreRelease("SNAPSHOT") } returns "1.2.3-SNAPSHOT.5"
         every { app.getNextPreRelease("RC") } returns "1.2.3-RC.1"
     }
 
     @Test
-    fun `explicit next release`() {
-        CLI.getCommand(listOf("next", "release")).execute(app, io)
+    fun `next release`() {
+        ccs.test("next").output shouldBe "1.2.3"
         verify { app.getNextRelease() }
-        io.stdout shouldBe "1.2.3"
-    }
-
-    @Test
-    fun `implicit next`() {
-        CLI.getCommand(listOf("next")).execute(app, io)
-        verify { app.getNextRelease() }
-        io.stdout shouldBe "1.2.3"
-    }
-
-    @Test
-    fun `default command`() {
-        CLI.getCommand(emptyList()).execute(app, io)
-        verify { app.getNextRelease() }
-        io.stdout shouldBe "1.2.3"
     }
 
     @Test
     fun `next pre-release`() {
-        CLI.getCommand(listOf("next", "pre-release")).execute(app, io)
-        verify { app.getNextPreRelease() }
-        io.stdout shouldBe "1.2.3-SNAPSHOT.5"
+        ccs.test("next -p").output shouldBe "1.2.3-SNAPSHOT.5"
+        verify { app.getNextPreRelease("SNAPSHOT") }
     }
 
     @Test
     fun `next pre-release RC`() {
-        CLI.getCommand(listOf("next", "pre-release", "RC")).execute(app, io)
+        ccs.test("next -pi RC").output shouldBe "1.2.3-RC.1"
         verify { app.getNextPreRelease("RC") }
-        io.stdout shouldBe "1.2.3-RC.1"
     }
 
     @Test
     fun `show help`() {
-        CLI.getCommand(listOf("next", "--help")).execute(app, io)
-        verify { app wasNot called }
-        io.stdout shouldBe """
-            compute next version
-            • release — compute next release version (no pre-release) -> 1.2.3
-            · pre-release — compute next pre-release version
-              • <pre-release identifier> – alphanumeric string (default: 'SNAPSHOT') -> '1.2.3-SNAPSHOT.4')
-            use --help at any point to get help
-            
-        """.trimIndent()
-    }
+        ccs.test("next --help").output shouldBe """
+            Usage: ccs next [<options>]
 
-    @Test
-    fun `dynamic help`() {
-        CLI.getCommand(listOf("next", "pre-release", "beta", "--help")).execute(app, io)
-        verify { app wasNot called }
-        io.stdout shouldBe """
-            compute pre-release with identifier 'beta' -> '1.2.3-beta.4'
-            use --help at any point to get help
+            Options:
+              -p, --pre-release        create a pre-release version instead of a full
+                                       release
+              -i, --identifier=<text>  set the pre-release identifier (default: 'SNAPSHOT')
+                                       -> '1.2.3-SNAPSHOT.4'
+              -h, --help               Show this message and exit
             
         """.trimIndent()
+        verify { app wasNot called }
     }
 
     @Test
     fun `illegal command`() {
-        CLI.getCommand(listOf("NOPE")).execute(app, io)
-        verify { app wasNot called }
-        io.stderr shouldStartWith """
-            unexpected 'NOPE'
-            Conventional Commits & Semantic Versioning
-            • next — compute next version
+        ccs.test("nope").stderr shouldBe """
+            Usage: ccs [<options>] <command> [<args>]...
+
+            Error: no such subcommand nope
+            
         """.trimIndent()
+        verify { app wasNot called }
     }
 }

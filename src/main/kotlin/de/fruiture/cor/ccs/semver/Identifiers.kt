@@ -13,9 +13,9 @@ internal val Char.identifier get() = this in IDENTIFIER_CHARACTERS
 @JvmInline
 value class AlphaNumericIdentifier(private val value: String) : Comparable<AlphaNumericIdentifier> {
     init {
-        require(value.isNotEmpty())
-        require(value.all { it.identifier })
-        require(value.any { it.nonDigit })
+        require(value.isNotEmpty()) { "identifier cannot be empty" }
+        require(value.all { it.identifier }) { "identifier '$value' must only contain: $IDENTIFIER_CHARACTERS" }
+        require(value.any { it.nonDigit }) { "identifier '$value' must contain at leas one non-digit" }
     }
 
     override fun compareTo(other: AlphaNumericIdentifier) = value.compareTo(other.value)
@@ -29,7 +29,7 @@ value class AlphaNumericIdentifier(private val value: String) : Comparable<Alpha
 @JvmInline
 value class NumericIdentifier(private val value: Int) : Comparable<NumericIdentifier> {
     init {
-        require(value >= 0)
+        require(value >= 0) { "numeric identifier must be positive integer" }
     }
 
     override fun compareTo(other: NumericIdentifier) = value.compareTo(other.value)
@@ -50,8 +50,8 @@ value class NumericIdentifier(private val value: Int) : Comparable<NumericIdenti
 @JvmInline
 value class DigitIdentifier(private val value: String) {
     init {
-        require(value.isNotEmpty())
-        require(value.all { it.digit })
+        require(value.isNotEmpty()) { "identifier cannot be empty" }
+        require(value.all { it.digit }) { "identifier '$value' must only contain digits" }
     }
 
     override fun toString() = value
