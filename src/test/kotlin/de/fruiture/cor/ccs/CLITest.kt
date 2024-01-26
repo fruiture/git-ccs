@@ -49,7 +49,7 @@ class CLITest {
               compute the next version based on changes since the last tagged version
             
             Options:
-              -p, --pre-release        create a pre-release version
+              -p, --pre-release
         """.trimIndent()
         verify { app wasNot called }
     }
