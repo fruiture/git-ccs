@@ -38,4 +38,7 @@ class App(
 
         return json.encodeToString(commits)
     }
+
+    fun getLatestVersion(release: Boolean = false): String? =
+        (if (release) git.getLatestRelease() else git.getLatestVersion())?.toString()
 }

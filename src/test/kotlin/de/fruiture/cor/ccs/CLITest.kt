@@ -79,4 +79,30 @@ class CLITest {
 
         ccs.test("next release -n default").output shouldBe "1.1.1"
     }
+
+    @Test
+    fun `get latest release tag`() {
+        every {
+            app.getLatestVersion(true)
+        } returns "0.2.3"
+        ccs.test("latest -r").output shouldBe "0.2.3"
+    }
+
+    @Test
+    fun `get latest release fails if no release yet`() {
+        every {
+            app.getLatestVersion(true)
+        } returns null
+        val result = ccs.test("latest -r")
+        result.statusCode shouldBe 1
+        result.stderr shouldBe "no release found\n"
+    }
+
+    @Test
+    fun `get latest version tag`() {
+        every {
+            app.getLatestVersion()
+        } returns "0.2.3-SNAP"
+        ccs.test("latest").output shouldBe "0.2.3-SNAP"
+    }
 }

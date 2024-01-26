@@ -72,7 +72,7 @@ class AppTest {
     }
 
 
-    private val hadABreakingChange = Git(object : SystemCaller {
+    private val hadABreakingChangeAfterSnapshot = Git(object : SystemCaller {
         override fun call(command: String, arguments: List<String>): SystemCallResult {
             return if (arguments.first() == "describe")
                 SystemCallResult(code = 0, stdout = listOf("1.2.3-SNAPSHOT.5"))
@@ -90,7 +90,18 @@ class AppTest {
 
     @Test
     fun `breaking change is recognized`() {
-        App(hadABreakingChange).getNextRelease() shouldBe "2.0.0"
-        App(hadABreakingChange).getNextPreRelease(counter()) shouldBe "2.0.0-SNAPSHOT.1"
+        App(hadABreakingChangeAfterSnapshot).getNextRelease() shouldBe "2.0.0"
+        App(hadABreakingChangeAfterSnapshot).getNextPreRelease(counter()) shouldBe "2.0.0-SNAPSHOT.1"
+    }
+
+    @Test
+    fun `get latest release`() {
+        App(oneFeatureAfterMajorRelease).getLatestVersion(true) shouldBe "1.0.0"
+        App(noReleaseYet).getLatestVersion(true) shouldBe null
+    }
+
+    @Test
+    fun `get latest version`() {
+        App(hadABreakingChangeAfterSnapshot).getLatestVersion() shouldBe "1.2.3-SNAPSHOT.5"
     }
 }

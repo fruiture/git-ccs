@@ -2,6 +2,7 @@ package de.fruiture.cor.ccs
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
+import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.groups.*
 import com.github.ajalt.clikt.parameters.options.*
@@ -108,6 +109,21 @@ class CCS(app: App) : NoOpCliktCommand() {
         }, object : CliktCommand(name = "log") {
             override fun run() {
                 echo(app.getChangeLog())
+            }
+        }, object : CliktCommand(name = "latest") {
+            val release by option(
+                "-r", "--release",
+                help = "look for release version (no snapshots)"
+            ).flag()
+
+            override fun run() {
+                val latestRelease = app.getLatestVersion(release)
+                if (latestRelease != null) {
+                    echo(latestRelease, trailingNewline = false)
+                } else {
+                    echo("no release found", err = true)
+                    throw ProgramResult(1)
+                }
             }
         })
     }
