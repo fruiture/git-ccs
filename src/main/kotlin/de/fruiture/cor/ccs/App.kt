@@ -4,7 +4,6 @@ import de.fruiture.cor.ccs.cc.ConventionalCommitMessage
 import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.git.Git
 import de.fruiture.cor.ccs.git.GitCommit
-import de.fruiture.cor.ccs.git.SystemCaller
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.ChangeType
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy
@@ -15,14 +14,12 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class App(
-    sys: SystemCaller,
+    private val git: Git,
     private val types: Map<Type, ChangeType> = mapOf(
         Type("feat") to ChangeType.MINOR,
         Type("fix") to ChangeType.PATCH
     )
 ) {
-    private val git = Git(sys)
-
     private fun getChangeType(latestVersion: Version) = git.getLog(latestVersion).change()
 
     private fun List<GitCommit>.change() = mapNotNull(GitCommit::conventionalCommit)

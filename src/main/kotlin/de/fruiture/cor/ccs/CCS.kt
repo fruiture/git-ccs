@@ -10,6 +10,7 @@ import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import de.fruiture.cor.ccs.git.Git
 import de.fruiture.cor.ccs.git.JvmProcessCaller
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.DEFAULT_PRERELEASE
@@ -68,6 +69,6 @@ class CCS(app: App) : NoOpCliktCommand() {
 }
 
 fun main(args: Array<String>) {
-    CCS(App(JvmProcessCaller())).main(args)
+    CCS(App(Git(JvmProcessCaller()))).main(args)
 }
 

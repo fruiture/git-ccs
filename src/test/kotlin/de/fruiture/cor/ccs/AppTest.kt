@@ -1,5 +1,6 @@
 package de.fruiture.cor.ccs
 
+import de.fruiture.cor.ccs.git.Git
 import de.fruiture.cor.ccs.git.SystemCallResult
 import de.fruiture.cor.ccs.git.SystemCaller
 import io.kotest.matchers.shouldBe
@@ -7,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 class AppTest {
 
-    private val oneFeatureAfterMajorRelease = object : SystemCaller {
+    private val oneFeatureAfterMajorRelease = Git(object : SystemCaller {
         override fun call(command: String, arguments: List<String>): SystemCallResult {
             return if (arguments.first() == "describe")
                 SystemCallResult(code = 0, stdout = listOf("1.0.0"))
@@ -21,7 +22,7 @@ class AppTest {
                 )
             } else throw IllegalArgumentException()
         }
-    }
+    })
 
     @Test
     fun `get next release version`() {
@@ -34,7 +35,7 @@ class AppTest {
         App(oneFeatureAfterMajorRelease).getNextPreRelease("alpha") shouldBe "1.1.0-alpha.1"
     }
 
-    private val noReleaseYet = object : SystemCaller {
+    private val noReleaseYet = Git(object : SystemCaller {
         override fun call(command: String, arguments: List<String>): SystemCallResult {
             return if (arguments.first() == "describe")
                 SystemCallResult(code = 128, stderr = listOf("fatal: No tags can describe ..."))
@@ -48,7 +49,7 @@ class AppTest {
                 )
             } else throw IllegalArgumentException()
         }
-    }
+    })
 
     @Test
     fun `get initial release or snapshot`() {
@@ -69,7 +70,7 @@ class AppTest {
     }
 
 
-    private val hadABreakingChange = object : SystemCaller {
+    private val hadABreakingChange = Git(object : SystemCaller {
         override fun call(command: String, arguments: List<String>): SystemCallResult {
             return if (arguments.first() == "describe")
                 SystemCallResult(code = 0, stdout = listOf("1.2.3-SNAPSHOT.5"))
@@ -83,7 +84,7 @@ class AppTest {
                 )
             } else throw IllegalArgumentException()
         }
-    }
+    })
 
     @Test
     fun `breaking change is recognized`() {
