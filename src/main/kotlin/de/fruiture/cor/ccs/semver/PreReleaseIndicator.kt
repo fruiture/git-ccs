@@ -52,11 +52,6 @@ data class PreReleaseIndicator(val identifiers: List<PreReleaseIdentifier>) : Co
         fun of(vararg identifiers: PreReleaseIdentifier) = PreReleaseIndicator(listOf(*identifiers))
         fun preRelease(string: String): PreReleaseIndicator =
             PreReleaseIndicator(string.split('.').map { identifier(it) })
-
-        private val DEFAULT_PRERELEASE = identifier("SNAPSHOT".alphanumeric)
-
-        internal fun start(identifier: PreReleaseIdentifier?) =
-            of(identifier ?: DEFAULT_PRERELEASE, identifier(1.numeric))
     }
 
     interface Strategy {
@@ -71,7 +66,8 @@ data class PreReleaseIndicator(val identifiers: List<PreReleaseIdentifier>) : Co
                 override fun next(indicator: PreReleaseIndicator) =
                     indicator.bumpCounter(identifier(identifier))
 
-                override fun start() = PreReleaseIndicator.start(identifier(identifier))
+                override fun start() =
+                    of(identifier(identifier), identifier(1.numeric))
             }
 
             private fun PreReleaseIndicator.bumpCounter(identifier: PreReleaseIdentifier): PreReleaseIndicator {

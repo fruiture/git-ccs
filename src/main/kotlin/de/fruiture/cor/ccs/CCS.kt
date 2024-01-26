@@ -14,9 +14,7 @@ import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.static
 
 
 class CCS(app: App) : CliktCommand() {
-    override fun run() {
-        shortHelp(currentContext)
-    }
+    override fun run() = Unit
 
     init {
         subcommands(object : CliktCommand(

@@ -55,6 +55,11 @@ class CLITest {
     }
 
     @Test
+    fun `show help when nothing`() {
+        ccs.test("").output shouldStartWith "Usage: ccs"
+    }
+
+    @Test
     fun `illegal command`() {
         ccs.test("nope").stderr shouldBe """
             Usage: ccs [<options>] <command> [<args>]...
