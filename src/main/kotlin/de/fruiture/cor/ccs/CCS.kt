@@ -107,13 +107,18 @@ class CCS(app: App) : NoOpCliktCommand() {
                     })
             }
         }, object : CliktCommand(name = "log") {
+            val release by option(
+                "-r", "--release",
+                help = "since last release version (ignore pre-releases)"
+            ).flag()
+
             override fun run() {
-                echo(app.getChangeLog())
+                echo(app.getChangeLogJson(release), trailingNewline = false)
             }
         }, object : CliktCommand(name = "latest") {
             val release by option(
                 "-r", "--release",
-                help = "look for release version (no snapshots)"
+                help = "look for release version (ignore pre-releases)"
             ).flag()
 
             override fun run() {

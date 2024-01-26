@@ -62,11 +62,11 @@ class AppTest {
 
     @Test
     fun `get change log`() {
-        App(oneFeatureAfterMajorRelease).getChangeLog() shouldBe
+        App(oneFeatureAfterMajorRelease).getChangeLogJson() shouldBe
                 """[{"hash":"cafebabe","date":"2001-01-01T13:00Z","message":"feat: a feature is born",""" +
                 """"conventionalCommit":{"type":"feat","description":"a feature is born"}}]"""
 
-        App(noReleaseYet).getChangeLog() shouldBe
+        App(noReleaseYet).getChangeLogJson() shouldBe
                 """[{"hash":"cafebabe","date":"2001-01-01T13:00Z","message":"feat: a feature is born",""" +
                 """"conventionalCommit":{"type":"feat","description":"a feature is born"}}]"""
     }

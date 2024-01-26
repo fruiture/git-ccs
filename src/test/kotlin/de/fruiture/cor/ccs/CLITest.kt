@@ -100,9 +100,13 @@ class CLITest {
 
     @Test
     fun `get latest version tag`() {
-        every {
-            app.getLatestVersion()
-        } returns "0.2.3-SNAP"
+        every { app.getLatestVersion() } returns "0.2.3-SNAP"
         ccs.test("latest").output shouldBe "0.2.3-SNAP"
+    }
+
+    @Test
+    fun `get log since release`() {
+        every { app.getChangeLogJson(true) } returns "[{foo}]"
+        ccs.test("log --release").output shouldBe "[{foo}]"
     }
 }
