@@ -148,7 +148,7 @@ class CCS(app: App) : NoOpCliktCommand() {
             val breakingChanges by option(
                 "-b", "--breaking-changes",
                 help = "adjust the headline for the breaking changes section (default 'Breaking Changes')"
-            )
+            ).default("Breaking Changes")
 
             val level by option(
                 "-l", "--level",
@@ -157,12 +157,11 @@ class CCS(app: App) : NoOpCliktCommand() {
 
             override fun run() {
                 val config = if (sections.isEmpty()) Sections.default() else Sections(sections)
-                val effectiveConfig = breakingChanges?.let { config.setBreakingChanges(it) } ?: config
 
                 echo(
                     app.getChangeLogMarkdown(
                         release = release,
-                        sections = effectiveConfig,
+                        sections = config.setBreakingChanges(breakingChanges),
                         level = level
                     ),
                     trailingNewline = false
