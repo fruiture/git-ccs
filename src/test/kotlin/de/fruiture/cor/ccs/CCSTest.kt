@@ -14,7 +14,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 
-class CLITest {
+class CCSTest {
 
     private val app = mockk<App>(relaxed = true)
     private val ccs = CCS(app)
