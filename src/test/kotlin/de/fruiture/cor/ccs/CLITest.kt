@@ -25,31 +25,28 @@ class CLITest {
 
     @Test
     fun `next release`() {
-        ccs.test("next").output shouldBe "1.2.3"
+        ccs.test("next release").output shouldBe "1.2.3"
         verify { app.getNextRelease() }
     }
 
     @Test
     fun `next pre-release`() {
-        ccs.test("next -p").output shouldBe "1.2.3-SNAPSHOT.5"
+        ccs.test("next pre-release").output shouldBe "1.2.3-SNAPSHOT.5"
         verify { app.getNextPreRelease(counter(DEFAULT_PRERELEASE)) }
     }
 
     @Test
     fun `next pre-release RC`() {
-        ccs.test("next -pi RC").output shouldBe "1.2.3-RC.1"
+        ccs.test("next pre-release -i RC").output shouldBe "1.2.3-RC.1"
         verify { app.getNextPreRelease(counter("RC".alphanumeric)) }
     }
 
     @Test
     fun `show help`() {
         ccs.test("next --help").output shouldStartWith  """
-            Usage: ccs next [<options>]
+            Usage: ccs next [<options>] <command> [<args>]...
 
-              compute the next version based on changes since the last tagged version
-            
-            Options:
-              -p, --pre-release
+              compute the next semantic version based on changes since the last version tag
         """.trimIndent()
         verify { app wasNot called }
     }

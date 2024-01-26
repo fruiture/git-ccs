@@ -1,6 +1,7 @@
 package de.fruiture.cor.ccs
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.groups.default
 import com.github.ajalt.clikt.parameters.groups.mutuallyExclusiveOptions
@@ -16,40 +17,47 @@ import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.static
 
 
-class CCS(app: App) : CliktCommand() {
-    override fun run() = Unit
-
+class CCS(app: App) : NoOpCliktCommand() {
     init {
-        subcommands(object : CliktCommand(
+        subcommands(object : NoOpCliktCommand(
             name = "next",
-            help = "compute the next version based on changes since the last tagged version"
+            help = "compute the next semantic version based on changes since the last version tag",
         ) {
-            val preRelease by option(
-                "-p", "--pre-release",
-                help = "create a pre-release version instead of a release version"
-            ).flag()
+            init {
+                subcommands(
+                    object : CliktCommand(
+                        name = "release",
+                        help = "create a release version, e.g. 1.2.3"
+                    ) {
+                        override fun run() {
+                            echo(app.getNextRelease(), trailingNewline = false)
+                        }
+                    },
 
-            val identifier by option(
-                "-i", "--identifier",
-                help = "set the pre-release identifier (default: 'SNAPSHOT')"
-            ).convert { it.alphanumeric }.default(DEFAULT_PRERELEASE)
+                    object : CliktCommand(
+                        name = "pre-release",
+                        help = "create a pre-release version, e.g. 1.2.3-SNAPSHOT.5"
+                    ) {
+                        val identifier by option(
+                            "-i", "--identifier",
+                            help = "set the pre-release identifier (default: 'SNAPSHOT')"
+                        ).convert { it.alphanumeric }.default(DEFAULT_PRERELEASE)
 
-            val strategy by mutuallyExclusiveOptions(
-                option(
-                    "-c", "--counter",
-                    help = "(default) add a numeric counter to the pre-release identifier -> 1.2.3-SNAPSHOT.3"
-                ).flag().convert { { counter(identifier) } },
-                option(
-                    "-s", "--static",
-                    help = "always keep the pre-release identifier static -> 1.2.3-SNAPSHOT"
-                ).flag().convert { { static(identifier) } }
-            ).single().default { counter(identifier) }
+                        val strategy by mutuallyExclusiveOptions(
+                            option(
+                                "-c", "--counter",
+                                help = "(default) add a numeric counter to the pre-release identifier, e.g. 1.2.3-SNAPSHOT.3"
+                            ).flag().convert { { counter(identifier) } },
+                            option(
+                                "-s", "--static",
+                                help = "always keep the pre-release identifier static, e.g. 1.2.3-SNAPSHOT"
+                            ).flag().convert { { static(identifier) } }
+                        ).single().default { counter(identifier) }
 
-            override fun run() {
-                if (preRelease)
-                    echo(app.getNextPreRelease(strategy()), trailingNewline = false)
-                else
-                    echo(app.getNextRelease(), trailingNewline = false)
+                        override fun run() {
+                            echo(app.getNextPreRelease(strategy()), trailingNewline = false)
+                        }
+                    })
             }
         }, object : CliktCommand(name = "log") {
             override fun run() {
