@@ -6,7 +6,7 @@ import de.fruiture.cor.ccs.semver.NumericIdentifier.Companion.numeric
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
 
 enum class ChangeType {
-    PATCH, MINOR, MAJOR
+    NONE, PATCH, MINOR, MAJOR
 }
 
 private fun Int.then(compare: () -> Int) = if (this == 0) compare() else this
@@ -36,6 +36,7 @@ internal data class VersionCore(
     override fun toString() = "$major.$minor.$patch"
 
     fun bump(type: ChangeType) = when (type) {
+        ChangeType.NONE -> this
         ChangeType.PATCH -> copy(patch = patch + 1)
         ChangeType.MINOR -> copy(minor = minor + 1, patch = 0.numeric)
         ChangeType.MAJOR -> copy(major = major + 1, minor = 0.numeric, patch = 0.numeric)

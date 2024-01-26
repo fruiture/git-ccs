@@ -26,6 +26,8 @@ class VersionUsageTest {
         version("2.3.25").next(ChangeType.PATCH) shouldBe version("2.3.26")
         version("2.3.25").next(ChangeType.MINOR) shouldBe version("2.4.0")
         version("2.3.25").next(ChangeType.MAJOR) shouldBe version("3.0.0")
+
+        version("2.3.25").next(ChangeType.NONE) shouldBe version("2.3.25")
     }
 
     @Test
@@ -41,6 +43,8 @@ class VersionUsageTest {
         version("3.0.0-rc.1").next(ChangeType.MAJOR) shouldBe version("3.0.0")
         version("3.0.0-rc.1").next(ChangeType.MINOR) shouldBe version("3.0.0")
         version("3.0.0-rc.1").next(ChangeType.PATCH) shouldBe version("3.0.0")
+
+        version("1.0.7-rc.1").next(ChangeType.NONE) shouldBe version("1.0.7")
     }
 
     @Test
@@ -109,6 +113,7 @@ class VersionUsageTest {
         lastRelease.next(ChangeType.PATCH).nextPreRelease() shouldBe lastPreRelease
         lastRelease.nextPreRelease(ChangeType.PATCH) shouldBe lastPreRelease
 
+        lastPreRelease.nextPreRelease(ChangeType.NONE) shouldBe version("1.2.4-SNAPSHOT.2")
         lastPreRelease.nextPreRelease(ChangeType.PATCH) shouldBe version("1.2.4-SNAPSHOT.2")
         lastPreRelease.nextPreRelease(ChangeType.MINOR) shouldBe version("1.3.0-SNAPSHOT.1")
         lastPreRelease.nextPreRelease(ChangeType.MAJOR) shouldBe version("2.0.0-SNAPSHOT.1")
