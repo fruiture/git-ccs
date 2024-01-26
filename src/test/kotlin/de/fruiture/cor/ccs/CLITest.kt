@@ -106,13 +106,25 @@ class CLITest {
 
     @Test
     fun `get log since release`() {
-        every { app.getChangeLogJson(true) } returns "[{foo}]"
-        ccs.test("log --release").output shouldBe "[{foo}]"
+        every { app.getChangeLogJson(true) } returns "[{json}]"
+        ccs.test("log --release").output shouldBe "[{json}]"
     }
 
     @Test
     fun `get markdown`() {
         every { app.getChangeLogMarkdown(false) } returns "*markdown*"
-        ccs.test("log --markdown").output shouldBe "*markdown*"
+        ccs.test("changes").output shouldBe "*markdown*"
+    }
+
+    @Test
+    fun `markdown with custom headings`() {
+        every {
+            app.getChangeLogMarkdown(
+                release = false,
+                sections = Sections(mapOf("Fun" to setOf(Type("feat")))),
+                level = 1
+            )
+        } returns "# Fun"
+        ccs.test("changes -s 'Fun=feat' -l 1").output shouldBe "# Fun"
     }
 }

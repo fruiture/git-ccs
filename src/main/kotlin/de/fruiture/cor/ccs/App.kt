@@ -45,19 +45,32 @@ class App(
         getLatest(release)?.toString()
 
     private fun getLatest(release: Boolean) = if (release) git.getLatestRelease() else git.getLatestVersion()
-    fun getChangeLogMarkdown(release: Boolean = false, headlines: Headlines = Headlines()) = sequence<String> {
-        val commits = getChanges(release).mapNotNull { it.conventionalCommit }
+    fun getChangeLogMarkdown(release: Boolean = false, sections: Sections = Sections.default(), level: Int = 2) =
+        sequence {
+            val hl = "#".repeat(level)
 
-        headlines.forEach { headline, types ->
-            val selectedCommits = commits.filter { it.type in types }
-            if (selectedCommits.isNotEmpty()) {
-                yield("## $headline\n")
+            val commits = getChanges(release).mapNotNull { it.conventionalCommit }
 
-                selectedCommits.forEach {
-                    yield("* ${it.description}")
+            val breakingChanges = commits.mapNotNull { it.breakingChange }
+            if (breakingChanges.isNotEmpty()) {
+                yield("$hl ${sections.breakingChanges}\n")
+
+                breakingChanges.forEach {
+                    yield("* $it")
                 }
                 yield("")
             }
-        }
-    }.joinToString("\n")
+
+            sections.forEach { headline, types ->
+                val selectedCommits = commits.filter { it.type in types }
+                if (selectedCommits.isNotEmpty()) {
+                    yield("$hl $headline\n")
+
+                    selectedCommits.forEach {
+                        yield("* ${it.description}")
+                    }
+                    yield("")
+                }
+            }
+        }.joinToString("\n")
 }

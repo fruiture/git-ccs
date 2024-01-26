@@ -110,11 +110,24 @@ class AppTest {
     fun `get markdown`() {
         App(oneFeatureAfterMajorRelease).getChangeLogMarkdown(
             release = false,
-            headlines = Headlines() + mapOf("Neue Funktionen" to listOf(Type("feat")))
+            sections = Sections(mapOf("Neue Funktionen" to setOf(Type("feat"))))
         ) shouldBe """
             ## Neue Funktionen
             
             * a feature is born
+            
+        """.trimIndent()
+    }
+
+    @Test
+    fun `get markdiwn with breaking changes`() {
+        App(hadABreakingChangeAfterSnapshot).getChangeLogMarkdown(
+            release = false,
+            sections = Sections().setBreakingChanges("API broken")
+        ) shouldBe """
+            ## API broken
+            
+            * a feature with a breaking change
             
         """.trimIndent()
     }

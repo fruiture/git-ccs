@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.groups.*
 import com.github.ajalt.clikt.parameters.options.*
+import com.github.ajalt.clikt.parameters.types.int
 import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.git.Git
 import de.fruiture.cor.ccs.git.JvmProcessCaller
@@ -112,19 +113,8 @@ class CCS(app: App) : NoOpCliktCommand() {
                 help = "since last release version (ignore pre-releases)"
             ).flag()
 
-            val markdown by option(
-                "-m", "--markdown",
-                help = "create a markdown changelog (only conventional commits, grouped by type)"
-            ).flag()
-
             override fun run() {
-                if (markdown)
-                    echo(
-                        app.getChangeLogMarkdown(release),
-                        trailingNewline = false
-                    )
-                else
-                    echo(app.getChangeLogJson(release), trailingNewline = false)
+                echo(app.getChangeLogJson(release), trailingNewline = false)
             }
         }, object : CliktCommand(name = "latest") {
             val release by option(
@@ -140,6 +130,43 @@ class CCS(app: App) : NoOpCliktCommand() {
                     echo("no release found", err = true)
                     throw ProgramResult(1)
                 }
+            }
+        }, object : CliktCommand(name = "changes") {
+            val release by option(
+                "-r", "--release",
+                help = "since last release version (ignore pre-releases)"
+            ).flag()
+
+            val sections by option(
+                "-s", "--section",
+                help = "specify section headlines and their types, types can be comma-separated'\n\n" +
+                        "e.g. -s 'Features=feat' -s 'Other=doc,perf'"
+            ).splitPair().convert { (hl, types) ->
+                hl to types.split(',').map { Type(it) }.toSet()
+            }.multiple().toMap()
+
+            val breakingChanges by option(
+                "-b", "--breaking-changes",
+                help = "adjust the headline for the breaking changes section (default 'Breaking Changes')"
+            )
+
+            val level by option(
+                "-l", "--level",
+                help = "level of headlines in markdown, default is 2: ## Headline"
+            ).int().default(2).check(message = "must be in 1 .. 7") { it in 1..7 }
+
+            override fun run() {
+                val config = if (sections.isEmpty()) Sections.default() else Sections(sections)
+                val effectiveConfig = breakingChanges?.let { config.setBreakingChanges(it) } ?: config
+
+                echo(
+                    app.getChangeLogMarkdown(
+                        release = release,
+                        sections = effectiveConfig,
+                        level = level
+                    ),
+                    trailingNewline = false
+                )
             }
         })
     }
