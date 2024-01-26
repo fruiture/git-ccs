@@ -112,8 +112,19 @@ class CCS(app: App) : NoOpCliktCommand() {
                 help = "since last release version (ignore pre-releases)"
             ).flag()
 
+            val markdown by option(
+                "-m", "--markdown",
+                help = "create a markdown changelog (only conventional commits, grouped by type)"
+            ).flag()
+
             override fun run() {
-                echo(app.getChangeLogJson(release), trailingNewline = false)
+                if (markdown)
+                    echo(
+                        app.getChangeLogMarkdown(release),
+                        trailingNewline = false
+                    )
+                else
+                    echo(app.getChangeLogJson(release), trailingNewline = false)
             }
         }, object : CliktCommand(name = "latest") {
             val release by option(

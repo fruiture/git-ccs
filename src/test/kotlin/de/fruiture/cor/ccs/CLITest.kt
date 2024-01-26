@@ -109,4 +109,10 @@ class CLITest {
         every { app.getChangeLogJson(true) } returns "[{foo}]"
         ccs.test("log --release").output shouldBe "[{foo}]"
     }
+
+    @Test
+    fun `get markdown`() {
+        every { app.getChangeLogMarkdown(false) } returns "*markdown*"
+        ccs.test("log --markdown").output shouldBe "*markdown*"
+    }
 }

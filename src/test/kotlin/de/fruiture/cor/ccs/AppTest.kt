@@ -1,5 +1,6 @@
 package de.fruiture.cor.ccs
 
+import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.git.Git
 import de.fruiture.cor.ccs.git.SystemCallResult
 import de.fruiture.cor.ccs.git.SystemCaller
@@ -103,5 +104,18 @@ class AppTest {
     @Test
     fun `get latest version`() {
         App(hadABreakingChangeAfterSnapshot).getLatestVersion() shouldBe "1.2.3-SNAPSHOT.5"
+    }
+
+    @Test
+    fun `get markdown`() {
+        App(oneFeatureAfterMajorRelease).getChangeLogMarkdown(
+            release = false,
+            headlines = Headlines() + mapOf("Neue Funktionen" to listOf(Type("feat")))
+        ) shouldBe """
+            ## Neue Funktionen
+            
+            * a feature is born
+            
+        """.trimIndent()
     }
 }
