@@ -1,6 +1,5 @@
 package de.fruiture.cor.ccs
 
-import de.fruiture.cor.ccs.cc.ConventionalCommitMessage
 import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.git.Git
 import de.fruiture.cor.ccs.git.GitCommit
@@ -13,20 +12,26 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+val ANY_COMMIT_TYPE = Type("any")
+
 class App(
     private val git: Git,
     private val types: Map<Type, ChangeType> = mapOf(
         Type("feat") to ChangeType.MINOR,
-        Type("fix") to ChangeType.PATCH
+        Type("fix") to ChangeType.PATCH,
+        ANY_COMMIT_TYPE to ChangeType.PATCH
     )
 ) {
     private fun getChangeType(latestVersion: Version) = git.getLog(latestVersion).change()
 
-    private fun List<GitCommit>.change() = mapNotNull(GitCommit::conventionalCommit)
-        .maxOfOrNull(::changeType) ?: ChangeType.PATCH
+    private val defaultChange = types[ANY_COMMIT_TYPE]!!
 
-    private fun changeType(message: ConventionalCommitMessage) =
-        if (message.hasBreakingChange) ChangeType.MAJOR else types.getOrDefault(message.type, ChangeType.PATCH)
+    private fun List<GitCommit>.change() = maxOfOrNull(::changeType) ?: defaultChange
+
+    private fun changeType(commit: GitCommit) =
+        if (commit.hasBreakingChange) ChangeType.MAJOR else {
+            types.getOrDefault(commit.type, defaultChange)
+        }
 
     fun getNextRelease(): String {
         val latestVersion = git.getLatestVersion() ?: return Version.initial.toString()
