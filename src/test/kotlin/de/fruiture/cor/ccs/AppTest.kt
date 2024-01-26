@@ -3,6 +3,8 @@ package de.fruiture.cor.ccs
 import de.fruiture.cor.ccs.git.Git
 import de.fruiture.cor.ccs.git.SystemCallResult
 import de.fruiture.cor.ccs.git.SystemCaller
+import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
+import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
@@ -31,8 +33,8 @@ class AppTest {
 
     @Test
     fun `get next pre-release version`() {
-        App(oneFeatureAfterMajorRelease).getNextPreRelease() shouldBe "1.1.0-SNAPSHOT.1"
-        App(oneFeatureAfterMajorRelease).getNextPreRelease("alpha") shouldBe "1.1.0-alpha.1"
+        App(oneFeatureAfterMajorRelease).getNextPreRelease(counter()) shouldBe "1.1.0-SNAPSHOT.1"
+        App(oneFeatureAfterMajorRelease).getNextPreRelease(counter("alpha".alphanumeric)) shouldBe "1.1.0-alpha.1"
     }
 
     private val noReleaseYet = Git(object : SystemCaller {
@@ -54,8 +56,8 @@ class AppTest {
     @Test
     fun `get initial release or snapshot`() {
         App(noReleaseYet).getNextRelease() shouldBe "0.0.1"
-        App(noReleaseYet).getNextPreRelease("RC") shouldBe "0.0.1-RC.1"
-        App(noReleaseYet).getNextPreRelease() shouldBe "0.0.1-SNAPSHOT.1"
+        App(noReleaseYet).getNextPreRelease(counter("RC".alphanumeric)) shouldBe "0.0.1-RC.1"
+        App(noReleaseYet).getNextPreRelease(counter()) shouldBe "0.0.1-SNAPSHOT.1"
     }
 
     @Test
@@ -89,6 +91,6 @@ class AppTest {
     @Test
     fun `breaking change is recognized`() {
         App(hadABreakingChange).getNextRelease() shouldBe "2.0.0"
-        App(hadABreakingChange).getNextPreRelease() shouldBe "2.0.0-SNAPSHOT.1"
+        App(hadABreakingChange).getNextPreRelease(counter()) shouldBe "2.0.0-SNAPSHOT.1"
     }
 }

@@ -1,7 +1,9 @@
 package de.fruiture.cor.ccs
 
 import com.github.ajalt.clikt.testing.test
+import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
+import de.fruiture.cor.ccs.semver.ChangeType
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.DEFAULT_PRERELEASE
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
 import io.kotest.matchers.shouldBe
@@ -43,7 +45,7 @@ class CLITest {
 
     @Test
     fun `show help`() {
-        ccs.test("next --help").output shouldStartWith  """
+        ccs.test("next --help").output shouldStartWith """
             Usage: ccs next [<options>] <command> [<args>]...
 
               compute the next semantic version based on changes since the last version tag
@@ -65,5 +67,16 @@ class CLITest {
             
         """.trimIndent()
         verify { app wasNot called }
+    }
+
+    @Test
+    fun `allow non-bumps`() {
+        every {
+            app.getNextRelease(
+                ChangeMapping() + (Type("default") to ChangeType.NONE)
+            )
+        } returns "1.1.1"
+
+        ccs.test("next release -n default").output shouldBe "1.1.1"
     }
 }
