@@ -48,59 +48,6 @@ data class PreReleaseIndicator(val identifiers: List<PreReleaseIdentifier>) : Co
     operator fun plus(other: PreReleaseIndicator) =
         PreReleaseIndicator(this.identifiers + other.identifiers)
 
-    fun bump(identifier: PreReleaseIdentifier? = null) =
-        if (identifier != null) bumpSpecific(identifier)
-        else bumpSpecific(findBumpKey() ?: DEFAULT_PRERELEASE)
-
-    private fun findBumpKey(): PreReleaseIdentifier? {
-        identifiers.zipWithNext { key, value ->
-            if (key is PreReleaseIdentifier.AlphaNumeric && value is PreReleaseIdentifier.Numeric) {
-                return key
-            }
-        }
-
-        return identifiers.lastOrNull { it is PreReleaseIdentifier.AlphaNumeric }
-    }
-
-    private fun bumpSpecific(identifier: PreReleaseIdentifier): PreReleaseIndicator {
-        val replaced = sequence {
-            var i = 0
-            var found = false
-
-            while (i < identifiers.size) {
-                val k = identifiers[i]
-                if (k == identifier) {
-                    found = true
-                    if (i + 1 < identifiers.size) {
-                        val v = identifiers[i + 1]
-                        if (v is PreReleaseIdentifier.Numeric) {
-                            yield(k)
-                            yield(v.bump())
-                            i += 2
-                            continue
-                        }
-                    }
-
-                    yield(k)
-                    yield(PreReleaseIdentifier.Numeric(2.numeric))
-                    i += 1
-                    continue
-                }
-
-                yield(k)
-                i += 1
-                continue
-            }
-
-            if (!found) {
-                yield(identifier)
-                yield(identifier(1.numeric))
-            }
-        }.toList()
-
-        return copy(identifiers = replaced)
-    }
-
     companion object {
         fun of(vararg identifiers: PreReleaseIdentifier) = PreReleaseIndicator(listOf(*identifiers))
         fun preRelease(string: String): PreReleaseIndicator =
@@ -111,4 +58,73 @@ data class PreReleaseIndicator(val identifiers: List<PreReleaseIdentifier>) : Co
         internal fun start(identifier: PreReleaseIdentifier?) =
             of(identifier ?: DEFAULT_PRERELEASE, identifier(1.numeric))
     }
+
+    interface Strategy {
+        fun next(indicator: PreReleaseIndicator): PreReleaseIndicator
+        fun start(): PreReleaseIndicator
+
+        companion object {
+            val DEFAULT_PRERELEASE = "SNAPSHOT".alphanumeric
+            fun counter(identifier: AlphaNumericIdentifier = DEFAULT_PRERELEASE): Strategy = CounterStrategy(identifier)
+
+            private data class CounterStrategy(val identifier: AlphaNumericIdentifier) : Strategy {
+                override fun next(indicator: PreReleaseIndicator) =
+                    indicator.bumpCounter(identifier(identifier))
+
+                override fun start() = PreReleaseIndicator.start(identifier(identifier))
+            }
+
+            private fun PreReleaseIndicator.bumpCounter(identifier: PreReleaseIdentifier): PreReleaseIndicator {
+                val replaced = sequence {
+                    var i = 0
+                    var found = false
+
+                    while (i < identifiers.size) {
+                        val k = identifiers[i]
+                        if (k == identifier) {
+                            found = true
+                            if (i + 1 < identifiers.size) {
+                                val v = identifiers[i + 1]
+                                if (v is PreReleaseIdentifier.Numeric) {
+                                    yield(k)
+                                    yield(v.bump())
+                                    i += 2
+                                    continue
+                                }
+                            }
+
+                            yield(k)
+                            yield(PreReleaseIdentifier.Numeric(2.numeric))
+                            i += 1
+                            continue
+                        }
+
+                        yield(k)
+                        i += 1
+                        continue
+                    }
+
+                    if (!found) {
+                        yield(identifier)
+                        yield(identifier(1.numeric))
+                    }
+                }.toList()
+
+                return copy(identifiers = replaced)
+            }
+
+            fun static(identifier: AlphaNumericIdentifier = DEFAULT_PRERELEASE): Strategy = Static(identifier)
+
+            private data class Static(val identifier: AlphaNumericIdentifier) : Strategy {
+                override fun next(indicator: PreReleaseIndicator) =
+                    identifier(identifier).let {
+                        if (it in indicator.identifiers) indicator else indicator + of(it)
+                    }
+
+                override fun start() = of(identifier(identifier))
+            }
+        }
+    }
 }
+
+

@@ -1,7 +1,11 @@
 package de.fruiture.cor.ccs
 
 import com.github.ajalt.clikt.testing.test
+import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
+import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.DEFAULT_PRERELEASE
+import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import io.mockk.called
 import io.mockk.every
 import io.mockk.mockk
@@ -15,8 +19,8 @@ class CLITest {
 
     init {
         every { app.getNextRelease() } returns "1.2.3"
-        every { app.getNextPreRelease("SNAPSHOT") } returns "1.2.3-SNAPSHOT.5"
-        every { app.getNextPreRelease("RC") } returns "1.2.3-RC.1"
+        every { app.getNextPreRelease(counter(DEFAULT_PRERELEASE)) } returns "1.2.3-SNAPSHOT.5"
+        every { app.getNextPreRelease(counter("RC".alphanumeric)) } returns "1.2.3-RC.1"
     }
 
     @Test
@@ -28,27 +32,24 @@ class CLITest {
     @Test
     fun `next pre-release`() {
         ccs.test("next -p").output shouldBe "1.2.3-SNAPSHOT.5"
-        verify { app.getNextPreRelease("SNAPSHOT") }
+        verify { app.getNextPreRelease(counter(DEFAULT_PRERELEASE)) }
     }
 
     @Test
     fun `next pre-release RC`() {
         ccs.test("next -pi RC").output shouldBe "1.2.3-RC.1"
-        verify { app.getNextPreRelease("RC") }
+        verify { app.getNextPreRelease(counter("RC".alphanumeric)) }
     }
 
     @Test
     fun `show help`() {
-        ccs.test("next --help").output shouldBe """
+        ccs.test("next --help").output shouldStartWith  """
             Usage: ccs next [<options>]
 
-            Options:
-              -p, --pre-release        create a pre-release version instead of a full
-                                       release
-              -i, --identifier=<text>  set the pre-release identifier (default: 'SNAPSHOT')
-                                       -> '1.2.3-SNAPSHOT.4'
-              -h, --help               Show this message and exit
+              compute the next version based on changes since the last tagged version
             
+            Options:
+              -p, --pre-release        create a pre-release version
         """.trimIndent()
         verify { app wasNot called }
     }

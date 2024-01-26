@@ -7,9 +7,8 @@ import de.fruiture.cor.ccs.git.GitCommit
 import de.fruiture.cor.ccs.git.SystemCaller
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.ChangeType
-import de.fruiture.cor.ccs.semver.PreReleaseIdentifier
-import de.fruiture.cor.ccs.semver.PreReleaseIdentifier.Companion.identifier
-import de.fruiture.cor.ccs.semver.PreReleaseIndicator
+import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy
+import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
 import de.fruiture.cor.ccs.semver.Version
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
@@ -40,15 +39,19 @@ class App(
     }
 
     fun getNextPreRelease(label: String? = null): String {
-        val identifier = label?.let { identifier(it.alphanumeric) }
-        val latestVersion = git.getLatestVersion() ?: return initialPreRelease(identifier).toString()
-        val changeType = getChangeType(latestVersion)
-
-        return latestVersion.nextPreRelease(changeType, identifier).toString()
+        val strategy = label?.let { counter(it.alphanumeric) } ?: counter()
+        return getNextPreRelease(strategy)
     }
 
-    private fun initialPreRelease(identifier: PreReleaseIdentifier?) =
-        Version.initial + PreReleaseIndicator.start(identifier)
+    fun getNextPreRelease(strategy: Strategy): String {
+        val latestVersion = git.getLatestVersion() ?: return initialPreRelease(strategy).toString()
+        val changeType = getChangeType(latestVersion)
+
+        return latestVersion.nextPreRelease(changeType, strategy).toString()
+    }
+
+    private fun initialPreRelease(strategy: Strategy) =
+        Version.initial + strategy.start()
 
     @OptIn(ExperimentalSerializationApi::class)
     private val json = Json { explicitNulls = false }

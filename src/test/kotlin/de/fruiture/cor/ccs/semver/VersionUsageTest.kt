@@ -2,8 +2,9 @@ package de.fruiture.cor.ccs.semver
 
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.Build.Companion.build
-import de.fruiture.cor.ccs.semver.PreReleaseIdentifier.Companion.identifier
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Companion.preRelease
+import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
+import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.static
 import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -74,13 +75,13 @@ class VersionUsageTest {
 
     @Test
     fun `bump pre-release only`() {
-        version("1.2.3-rc.1").nextPreRelease() shouldBe version("1.2.3-rc.2")
-        version("1.2.3-rc").nextPreRelease() shouldBe version("1.2.3-rc.2")
+        version("1.2.3-rc.1").nextPreRelease(counter("rc".alphanumeric)) shouldBe version("1.2.3-rc.2")
+        version("1.2.3-rc").nextPreRelease(counter("rc".alphanumeric)) shouldBe version("1.2.3-rc.2")
 
         version("1.2.3").nextPreRelease() shouldBe version("1.2.3-SNAPSHOT.1")
-        version("1.2.3").nextPreRelease(identifier("RC".alphanumeric)) shouldBe version("1.2.3-RC.1")
+        version("1.2.3").nextPreRelease(counter("RC".alphanumeric)) shouldBe version("1.2.3-RC.1")
 
-        val alpha = identifier("alpha")
+        val alpha = counter("alpha".alphanumeric)
 
         version("1.2.3-beta").nextPreRelease(alpha) shouldBe version("1.2.3-beta.alpha.1")
         version("1.2.3-alpha").nextPreRelease(alpha) shouldBe version("1.2.3-alpha.2")
@@ -88,6 +89,16 @@ class VersionUsageTest {
         version("1.2.3").nextPreRelease(alpha) shouldBe version("1.2.3-alpha.1")
 
         version("1.2.3-alpha.7.junk").nextPreRelease(alpha) shouldBe version("1.2.3-alpha.8.junk")
+    }
+
+    @Test
+    fun `static pre-releases`() {
+        version("1.2.3").nextPreRelease(static()) shouldBe version("1.2.3-SNAPSHOT")
+        version("1.2.3").nextPreRelease(ChangeType.MINOR, static()) shouldBe version("1.3.0-SNAPSHOT")
+
+        version("1.2.3-SNAPSHOT").nextPreRelease(ChangeType.PATCH, static()) shouldBe version("1.2.3-SNAPSHOT")
+
+        version("1.2.3").nextPreRelease(ChangeType.PATCH, static("foo".alphanumeric)) shouldBe version("1.2.4-foo")
     }
 
     @Test

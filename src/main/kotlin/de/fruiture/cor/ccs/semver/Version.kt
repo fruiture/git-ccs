@@ -3,6 +3,7 @@ package de.fruiture.cor.ccs.semver
 import de.fruiture.cor.ccs.semver.Build.Companion.add
 import de.fruiture.cor.ccs.semver.Build.Companion.suffix
 import de.fruiture.cor.ccs.semver.NumericIdentifier.Companion.numeric
+import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
 
 enum class ChangeType {
     PATCH, MINOR, MAJOR
@@ -60,9 +61,8 @@ sealed class Version : Comparable<Version> {
     abstract operator fun plus(build: Build): Version
 
     abstract fun next(type: ChangeType): Release
-    internal abstract fun nextPreRelease(identifier: PreReleaseIdentifier? = null): PreRelease
-    abstract fun nextPreRelease(type: ChangeType, identifier: PreReleaseIdentifier? = null): PreRelease
-
+    internal abstract fun nextPreRelease(strategy: PreReleaseIndicator.Strategy = counter()): PreRelease
+    abstract fun nextPreRelease(type: ChangeType, strategy: PreReleaseIndicator.Strategy = counter()): PreRelease
 
     companion object {
         val initial = Release(VersionCore.of(0, 0, 1))
@@ -114,8 +114,8 @@ data class PreRelease internal constructor(
     override fun plus(preRelease: PreReleaseIndicator) = copy(pre = pre + preRelease)
     override fun plus(build: Build) = copy(build = this.build add build)
 
-    override fun nextPreRelease(identifier: PreReleaseIdentifier?) =
-        copy(pre = pre.bump(identifier), build = null)
+    override fun nextPreRelease(strategy: PreReleaseIndicator.Strategy) =
+        copy(pre = strategy.next(pre), build = null)
 
     override fun next(type: ChangeType): Release {
         val changeToHere = release.type
@@ -124,10 +124,10 @@ data class PreRelease internal constructor(
     }
 
 
-    override fun nextPreRelease(type: ChangeType, identifier: PreReleaseIdentifier?): PreRelease {
+    override fun nextPreRelease(type: ChangeType, strategy: PreReleaseIndicator.Strategy): PreRelease {
         val changeToHere = release.type
-        return if (changeToHere >= type) nextPreRelease(identifier)
-        else release.next(type).nextPreRelease(identifier)
+        return if (changeToHere >= type) nextPreRelease(strategy)
+        else release.next(type).nextPreRelease(strategy)
     }
 }
 
@@ -149,9 +149,9 @@ data class Release internal constructor(override val core: VersionCore, override
     override fun plus(build: Build) = copy(build = this.build add build)
 
     override fun next(type: ChangeType) = Release(core.bump(type))
-    override fun nextPreRelease(identifier: PreReleaseIdentifier?) =
-        PreRelease(core, PreReleaseIndicator.start(identifier))
+    override fun nextPreRelease(strategy: PreReleaseIndicator.Strategy) =
+        PreRelease(core, strategy.start())
 
-    override fun nextPreRelease(type: ChangeType, identifier: PreReleaseIdentifier?) =
-        next(type).nextPreRelease(identifier)
+    override fun nextPreRelease(type: ChangeType, strategy: PreReleaseIndicator.Strategy) =
+        next(type).nextPreRelease(strategy)
 }
