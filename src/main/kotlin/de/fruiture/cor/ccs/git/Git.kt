@@ -2,6 +2,7 @@ package de.fruiture.cor.ccs.git
 
 import de.fruiture.cor.ccs.semver.Release
 import de.fruiture.cor.ccs.semver.Version
+import de.fruiture.cor.ccs.semver.Version.Companion.version
 import java.time.ZonedDateTime
 
 class Git(private val sys: SystemCaller) {
@@ -13,13 +14,27 @@ class Git(private val sys: SystemCaller) {
         return getLatestTagAsVersion(true) as Release?
     }
 
-    private fun getLatestTagAsVersion(excludePreReleases: Boolean): Version? {
+    private fun getLatestTagAsVersion(excludePreReleases: Boolean): Version? =
+        getOneLatestTag(excludePreReleases)?.let {
+            findHighestVersionTag(it)
+        }
+
+    private fun findHighestVersionTag(candidate: Version): Version? {
+        val arguments = listOf("tag", "--points-at", candidate.toString())
+        val result = sys.call("git", arguments)
+        if (result.code != 0)
+            throw RuntimeException("unexpected result from system call (git $arguments): $result")
+
+        return result.stdout.maxOfOrNull(::version)
+    }
+
+    private fun getOneLatestTag(excludePreReleases: Boolean): Version? {
         val arguments = (listOf("describe", "--tags", "--match=*.*.*")
                 + (if (excludePreReleases) listOf("--exclude=*-*") else emptyList())
                 + listOf("--abbrev=0", "HEAD"))
         val result = sys.call("git", arguments)
 
-        return if (result.code == 0) return result.stdout.first().let(Version::version)
+        return if (result.code == 0) return result.stdout.first().let(::version)
         else {
             if (result.stderr.first().contains("No tags can describe")) null
             else throw RuntimeException("unexpected result from system call (git $arguments): $result")

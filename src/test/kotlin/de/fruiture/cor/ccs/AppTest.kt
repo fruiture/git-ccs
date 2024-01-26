@@ -2,30 +2,26 @@ package de.fruiture.cor.ccs
 
 import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.git.Git
-import de.fruiture.cor.ccs.git.SystemCallResult
-import de.fruiture.cor.ccs.git.SystemCaller
+import de.fruiture.cor.ccs.git.GitCommit
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
+import de.fruiture.cor.ccs.semver.Release
+import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.jupiter.api.Test
+import java.time.ZonedDateTime
 
 class AppTest {
 
-    private val oneFeatureAfterMajorRelease = Git(object : SystemCaller {
-        override fun call(command: String, arguments: List<String>): SystemCallResult {
-            return if (arguments.first() == "describe")
-                SystemCallResult(code = 0, stdout = listOf("1.0.0"))
-            else if (arguments.first() == "log" && arguments.last() == "1.0.0..HEAD") {
-                SystemCallResult(
-                    code = 0,
-                    stdout = """
-                            cafebabe 2001-01-01T13:00Z
-                            feat: a feature is born
-                        """.trimIndent().lines()
-                )
-            } else throw IllegalArgumentException()
-        }
-    })
+    private val oneFeatureAfterMajorRelease = mockk<Git>().apply {
+        every { getLatestVersion() } returns version("1.0.0")
+        every { getLatestRelease() } returns version("1.0.0") as Release
+        every { getLog(from = version("1.0.0")) } returns listOf(
+            GitCommit("cafebabe", ZonedDateTime.parse("2001-01-01T13:00Z"), "feat: a feature is born")
+        )
+    }
 
     @Test
     fun `get next release version`() {
@@ -38,21 +34,14 @@ class AppTest {
         App(oneFeatureAfterMajorRelease).getNextPreRelease(counter("alpha".alphanumeric)) shouldBe "1.1.0-alpha.1"
     }
 
-    private val noReleaseYet = Git(object : SystemCaller {
-        override fun call(command: String, arguments: List<String>): SystemCallResult {
-            return if (arguments.first() == "describe")
-                SystemCallResult(code = 128, stderr = listOf("fatal: No tags can describe ..."))
-            else if (arguments.first() == "log" && arguments.last() == "HEAD") {
-                SystemCallResult(
-                    code = 0,
-                    stdout = """
-                            cafebabe 2001-01-01T13:00Z
-                            feat: a feature is born
-                        """.trimIndent().lines()
-                )
-            } else throw IllegalArgumentException()
-        }
-    })
+    private val noReleaseYet = mockk<Git>().apply {
+        every { getLatestVersion() } returns null
+        every { getLatestRelease() } returns null
+        every { getLog(from = null) } returns listOf(
+            GitCommit("cafebabe", ZonedDateTime.parse("2001-01-01T13:00Z"), "feat: a feature is born")
+        )
+    }
+
 
     @Test
     fun `get initial release or snapshot`() {
@@ -73,21 +62,12 @@ class AppTest {
     }
 
 
-    private val hadABreakingChangeAfterSnapshot = Git(object : SystemCaller {
-        override fun call(command: String, arguments: List<String>): SystemCallResult {
-            return if (arguments.first() == "describe")
-                SystemCallResult(code = 0, stdout = listOf("1.2.3-SNAPSHOT.5"))
-            else if (arguments.first() == "log" && arguments.last() == "1.2.3-SNAPSHOT.5..HEAD") {
-                SystemCallResult(
-                    code = 0,
-                    stdout = """
-                            cafebabe 2001-01-01T13:00Z
-                            feat!: a feature with a breaking change
-                        """.trimIndent().lines()
-                )
-            } else throw IllegalArgumentException()
-        }
-    })
+    private val hadABreakingChangeAfterSnapshot = mockk<Git>().apply {
+        every { getLatestVersion() } returns version("1.2.3-SNAPSHOT.5")
+        every { getLog(from = version("1.2.3-SNAPSHOT.5")) } returns listOf(
+            GitCommit("cafebabe", ZonedDateTime.parse("2001-01-01T13:00Z"), "feat!: a feature with a breaking change")
+        )
+    }
 
     @Test
     fun `breaking change is recognized`() {

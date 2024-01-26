@@ -13,13 +13,20 @@ class GitTest {
         val sys = object : SystemCaller {
             override fun call(command: String, arguments: List<String>): SystemCallResult {
                 command shouldBe "git"
-                arguments shouldBe listOf("describe", "--tags", "--match=*.*.*", "--abbrev=0", "HEAD")
-
-                return SystemCallResult(
-                    code = 0,
-                    stdout = listOf("1.0.0-alpha"),
-                    stderr = emptyList()
-                )
+                if (
+                    arguments == listOf("describe", "--tags", "--match=*.*.*", "--abbrev=0", "HEAD"))
+                    return SystemCallResult(
+                        code = 0,
+                        stdout = listOf("1.0.0-alpha"),
+                        stderr = emptyList()
+                    )
+                else {
+                    arguments shouldBe listOf("tag", "--points-at", "1.0.0-alpha")
+                    return SystemCallResult(
+                        code = 0,
+                        stdout = listOf("1.0.0-alpha"),
+                    )
+                }
             }
         }
 
@@ -27,24 +34,36 @@ class GitTest {
     }
 
     @Test
-    fun `get latest release version tag`() {
+    fun `get latest release version tag with disambiguation`() {
         val sys = object : SystemCaller {
             override fun call(command: String, arguments: List<String>): SystemCallResult {
                 command shouldBe "git"
-                arguments shouldBe listOf(
-                    "describe",
-                    "--tags",
-                    "--match=*.*.*",
-                    "--exclude=*-*",
-                    "--abbrev=0",
-                    "HEAD"
-                )
-
-                return SystemCallResult(
-                    code = 0,
-                    stdout = listOf("1.0.0"),
-                    stderr = emptyList()
-                )
+                if (
+                    arguments == listOf(
+                        "describe",
+                        "--tags",
+                        "--match=*.*.*",
+                        "--exclude=*-*",
+                        "--abbrev=0",
+                        "HEAD"
+                    )
+                ) {
+                    return SystemCallResult(
+                        code = 0,
+                        stdout = listOf("0.0.3"),
+                        stderr = emptyList()
+                    )
+                } else {
+                    arguments shouldBe listOf("tag", "--points-at", "0.0.3")
+                    return SystemCallResult(
+                        code = 0,
+                        stdout = listOf(
+                            "1.0.0-alpha",
+                            "1.0.0",
+                            "0.0.3"
+                        ),
+                    )
+                }
             }
         }
 
