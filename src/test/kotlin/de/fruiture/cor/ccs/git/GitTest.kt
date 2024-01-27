@@ -2,92 +2,79 @@ package de.fruiture.cor.ccs.git
 
 import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.ZonedDateTime
 
 class GitTest {
 
-    @Test
-    fun `find the latest version tag`() {
-        val sys = object : SystemCaller {
-            override fun call(command: String, arguments: List<String>): SystemCallResult {
-                command shouldBe "git"
-                if (
-                    arguments == listOf("describe", "--tags", "--match=*.*.*", "--abbrev=0", "HEAD"))
-                    return SystemCallResult(
-                        code = 0,
-                        stdout = listOf("1.0.0-alpha"),
-                        stderr = emptyList()
-                    )
-                else {
-                    arguments shouldBe listOf("tag", "--points-at", "1.0.0-alpha")
-                    return SystemCallResult(
-                        code = 0,
-                        stdout = listOf("1.0.0-alpha"),
-                    )
-                }
-            }
-        }
-
-        Git(sys).getLatestVersion() shouldBe version("1.0.0-alpha")
-    }
+    private val forEachRef = listOf(
+        "for-each-ref",
+        "--merged", "HEAD",
+        "--sort=-committerdate",
+        "--format=%(refname:short)",
+        "refs/tags/*.*.*"
+    )
 
     @Test
-    fun `get latest release version tag with disambiguation`() {
-        val sys = object : SystemCaller {
-            override fun call(command: String, arguments: List<String>): SystemCallResult {
-                command shouldBe "git"
-                if (
-                    arguments == listOf(
-                        "describe",
-                        "--tags",
-                        "--match=*.*.*",
-                        "--exclude=*-*",
-                        "--abbrev=0",
-                        "HEAD"
-                    )
-                ) {
-                    return SystemCallResult(
-                        code = 0,
-                        stdout = listOf("0.0.3"),
-                        stderr = emptyList()
-                    )
-                } else {
-                    arguments shouldBe listOf("tag", "--points-at", "0.0.3")
-                    return SystemCallResult(
-                        code = 0,
-                        stdout = listOf(
-                            "1.0.0-alpha",
-                            "1.0.0",
-                            "0.0.3"
-                        ),
-                    )
-                }
-            }
-        }
+    fun `get latest version using git for-each-ref`() {
 
-        Git(sys).getLatestRelease() shouldBe version("1.0.0")
-    }
-
-    @Test
-    fun `no release found`() {
-        val sys = object : SystemCaller {
-            override fun call(command: String, arguments: List<String>): SystemCallResult {
-                command shouldBe "git"
-                arguments shouldBe listOf("describe", "--tags", "--match=*.*.*", "--abbrev=0", "HEAD")
-
-                return SystemCallResult(
-                    code = 128,
-                    stderr = listOf(
-                        "fatal: No tags can describe 'e2b5139bcdfcab80b8ea7f225f511dc3df9ee24e'.",
-                        "Try --always, or create some tags."
-                    )
+        val sys = mockk<SystemCaller>().apply {
+            every { call("git", forEachRef) } returns SystemCallResult(
+                code = 0, stdout = listOf(
+                    "2.1.0-SNAPSHOT.1",
+                    "2.1.0-SNAPSHOT.2",
+                    "2.0.0"
                 )
-            }
+            )
         }
 
+        Git(sys).getLatestVersion() shouldBe version("2.1.0-SNAPSHOT.2")
+    }
+
+    @Test
+    fun `get latest proper release`() {
+        val sys = mockk<SystemCaller>().apply {
+            every { call("git", forEachRef) } returns SystemCallResult(
+                code = 0, stdout = listOf(
+                    "2.1.0-SNAPSHOT.1",
+                    "2.1.0-SNAPSHOT.2",
+                    "2.0.0"
+                )
+            )
+        }
+
+        Git(sys).getLatestRelease() shouldBe version("2.0.0")
+    }
+
+    @Test
+    fun `find no version`() {
+        val sys = mockk<SystemCaller>().apply {
+            every { call("git", forEachRef) } returns SystemCallResult(
+                code = 0, stdout = emptyList()
+            )
+        }
+
+        Git(sys).getLatestRelease() shouldBe null
         Git(sys).getLatestVersion() shouldBe null
+    }
+
+    @Test
+    fun `tolerate non-versions`() {
+        val sys = mockk<SystemCaller>().apply {
+            every { call("git", forEachRef) } returns SystemCallResult(
+                code = 0, stdout = listOf(
+                    "2.1.0-SNAPSHOT.1",
+                    "2.1.0-SNAPSHOT.2",
+                    "accidental.version.string",
+                    "2.0.0"
+                )
+            )
+        }
+
+        Git(sys).getLatestRelease() shouldBe version("2.0.0")
     }
 
     @Test

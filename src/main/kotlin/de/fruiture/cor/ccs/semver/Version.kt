@@ -88,6 +88,8 @@ sealed class Version : Comparable<Version> {
                 )
             }
         }
+
+        fun extractVersion(string: String) = runCatching { version(string) }.getOrNull()
     }
 }
 

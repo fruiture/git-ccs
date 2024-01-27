@@ -2,54 +2,27 @@ package de.fruiture.cor.ccs.git
 
 import de.fruiture.cor.ccs.semver.Release
 import de.fruiture.cor.ccs.semver.Version
-import de.fruiture.cor.ccs.semver.Version.Companion.version
+import de.fruiture.cor.ccs.semver.Version.Companion.extractVersion
 import java.time.ZonedDateTime
 
 class Git(private val sys: SystemCaller) {
     fun getLatestVersion(): Version? {
-        return getLatestTagAsVersion(false)
+        return getAllVersionTags().maxOrNull()
     }
 
     fun getLatestRelease(): Release? {
-        return getLatestTagAsVersion(true) as Release?
+        return getAllVersionTags().filterIsInstance<Release>().maxOrNull()
     }
 
-    private fun getLatestTagAsVersion(excludePreReleases: Boolean): Version? =
-        getOneLatestTag(excludePreReleases)?.let {
-            findHighestVersionTag(it, excludePreReleases)
-        }
-
-    private fun findHighestVersionTag(candidate: Version, excludePreReleases: Boolean): Version? {
-        val tags = git(listOf("tag", "--points-at", candidate.toString()))
-
-        return tags.map(::version).filter {
-            if (excludePreReleases) it is Release else true
-        }.maxOrNull()
-    }
-
-    private fun git(arguments: List<String>, success: (SystemCallResult) -> Boolean = { it.code == 0 }): List<String> {
-        val result = sys.call("git", arguments)
-        if (success(result)) {
-            return result.stdout
-        } else {
-            throw RuntimeException("unexpected result from system call (git $arguments): $result")
-        }
-    }
-
-    private fun getOneLatestTag(excludePreReleases: Boolean): Version? {
-
-        val arguments = (
-                listOf("describe", "--tags", "--match=*.*.*")
-                        + (if (excludePreReleases) listOf("--exclude=*-*") else emptyList())
-                        + listOf("--abbrev=0", "HEAD")
-                )
-
-        val result = git(arguments) {
-            it.code == 0 || it.stderr.first().contains("No tags can describe")
-        }
-
-        return result.firstOrNull()?.let(::version)
-    }
+    private fun getAllVersionTags() = git(
+        listOf(
+            "for-each-ref",
+            "--merged", "HEAD",
+            "--sort=-committerdate",
+            "--format=%(refname:short)",
+            "refs/tags/*.*.*"
+        )
+    ).mapNotNull { extractVersion(it) }
 
     fun getLog(from: Version? = null): List<GitCommit> {
         val arguments = listOf("log", "--format=format:%H %aI%n%B%n", "-z",
@@ -68,6 +41,15 @@ class Git(private val sys: SystemCaller) {
                     message = msg.trim()
                 )
             }
+        }
+    }
+
+    private fun git(arguments: List<String>, success: (SystemCallResult) -> Boolean = { it.code == 0 }): List<String> {
+        val result = sys.call("git", arguments)
+        if (success(result)) {
+            return result.stdout
+        } else {
+            throw RuntimeException("unexpected result from system call (git $arguments): $result")
         }
     }
 }
