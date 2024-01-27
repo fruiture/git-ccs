@@ -140,7 +140,7 @@ class CCS(app: App) : NoOpCliktCommand() {
             val sections by option(
                 "-s", "--section",
                 help = "specify section headlines and their types, types can be comma-separated'\n\n" +
-                        "e.g. -s 'Features=feat' -s 'Other=doc,perf'"
+                        "e.g. (default) -s 'Features=feat' -s 'Bugfixes=fix'"
             ).splitPair().convert { (hl, types) ->
                 hl to types.split(',').map { Type(it) }.toSet()
             }.multiple().toMap()
