@@ -1,7 +1,9 @@
 package de.fruiture.cor.ccs
 
 import de.fruiture.cor.ccs.git.Git
+import de.fruiture.cor.ccs.semver.PreRelease
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy
+import de.fruiture.cor.ccs.semver.Release
 import de.fruiture.cor.ccs.semver.Version
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
@@ -13,18 +15,18 @@ class App(
     private fun getChangeType(latestVersion: Version, mapping: ChangeMapping) =
         mapping.of(git.getLog(latestVersion))
 
-    fun getNextRelease(changeMapping: ChangeMapping = ChangeMapping()): String {
-        val latestVersion = git.getLatestVersion() ?: return Version.initial.toString()
+    fun getNextRelease(changeMapping: ChangeMapping = ChangeMapping()): Release {
+        val latestVersion = git.getLatestVersion() ?: return Version.initial
 
         val changeType = getChangeType(latestVersion, changeMapping)
-        return latestVersion.next(changeType).toString()
+        return latestVersion.next(changeType)
     }
 
-    fun getNextPreRelease(strategy: Strategy, changeMapping: ChangeMapping = ChangeMapping()): String {
-        val latestVersion = git.getLatestVersion() ?: return initialPreRelease(strategy).toString()
+    fun getNextPreRelease(strategy: Strategy, changeMapping: ChangeMapping = ChangeMapping()): PreRelease {
+        val latestVersion = git.getLatestVersion() ?: return initialPreRelease(strategy)
         val changeType = getChangeType(latestVersion, changeMapping)
 
-        return latestVersion.nextPreRelease(changeType, strategy).toString()
+        return latestVersion.nextPreRelease(changeType, strategy)
     }
 
     private fun initialPreRelease(strategy: Strategy) =

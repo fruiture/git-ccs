@@ -49,21 +49,21 @@ class AppTest {
 
     @Test
     fun `get next release version`() {
-        App(oneFeatureAfterMajorRelease).getNextRelease() shouldBe "1.1.0"
+        App(oneFeatureAfterMajorRelease).getNextRelease() shouldBe version("1.1.0")
     }
 
     @Test
     fun `get next pre-release version`() {
-        App(oneFeatureAfterMajorRelease).getNextPreRelease(counter()) shouldBe "1.1.0-SNAPSHOT.1"
-        App(oneFeatureAfterMajorRelease).getNextPreRelease(counter("alpha".alphanumeric)) shouldBe "1.1.0-alpha.1"
+        App(oneFeatureAfterMajorRelease).getNextPreRelease(counter()) shouldBe version("1.1.0-SNAPSHOT.1")
+        App(oneFeatureAfterMajorRelease).getNextPreRelease(counter("alpha".alphanumeric)) shouldBe version("1.1.0-alpha.1")
     }
 
 
     @Test
     fun `get initial release or snapshot`() {
-        App(noReleaseYet).getNextRelease() shouldBe "0.0.1"
-        App(noReleaseYet).getNextPreRelease(counter("RC".alphanumeric)) shouldBe "0.0.1-RC.1"
-        App(noReleaseYet).getNextPreRelease(counter()) shouldBe "0.0.1-SNAPSHOT.1"
+        App(noReleaseYet).getNextRelease() shouldBe version("0.0.1")
+        App(noReleaseYet).getNextPreRelease(counter("RC".alphanumeric)) shouldBe version("0.0.1-RC.1")
+        App(noReleaseYet).getNextPreRelease(counter()) shouldBe version("0.0.1-SNAPSHOT.1")
     }
 
     @Test
@@ -80,8 +80,8 @@ class AppTest {
 
     @Test
     fun `breaking change is recognized`() {
-        App(hadABreakingChangeAfterSnapshot).getNextRelease() shouldBe "2.0.0"
-        App(hadABreakingChangeAfterSnapshot).getNextPreRelease(counter()) shouldBe "2.0.0-SNAPSHOT.1"
+        App(hadABreakingChangeAfterSnapshot).getNextRelease() shouldBe version("2.0.0")
+        App(hadABreakingChangeAfterSnapshot).getNextPreRelease(counter()) shouldBe version("2.0.0-SNAPSHOT.1")
     }
 
     @Test

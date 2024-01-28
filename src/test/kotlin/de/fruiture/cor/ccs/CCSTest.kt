@@ -4,8 +4,10 @@ import com.github.ajalt.clikt.testing.test
 import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.ChangeType
+import de.fruiture.cor.ccs.semver.PreRelease
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.DEFAULT_PRERELEASE
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
+import de.fruiture.cor.ccs.semver.Release
 import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
@@ -21,9 +23,9 @@ class CCSTest {
     private val ccs = CCS(app)
 
     init {
-        every { app.getNextRelease() } returns "1.2.3"
-        every { app.getNextPreRelease(counter(DEFAULT_PRERELEASE)) } returns "1.2.3-SNAPSHOT.5"
-        every { app.getNextPreRelease(counter("RC".alphanumeric)) } returns "1.2.3-RC.1"
+        every { app.getNextRelease() } returns version("1.2.3") as Release
+        every { app.getNextPreRelease(counter(DEFAULT_PRERELEASE)) } returns version("1.2.3-SNAPSHOT.5") as PreRelease
+        every { app.getNextPreRelease(counter("RC".alphanumeric)) } returns version("1.2.3-RC.1") as PreRelease
     }
 
     @Test
@@ -76,7 +78,7 @@ class CCSTest {
             app.getNextRelease(
                 ChangeMapping() + (Type("default") to ChangeType.NONE)
             )
-        } returns "1.1.1"
+        } returns version("1.1.1") as Release
 
         ccs.test("next release -n default").output shouldBe "1.1.1"
     }
