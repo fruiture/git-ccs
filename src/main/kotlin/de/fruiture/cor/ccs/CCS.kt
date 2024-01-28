@@ -15,6 +15,7 @@ import de.fruiture.cor.ccs.semver.ChangeType
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.DEFAULT_PRERELEASE
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.static
+import de.fruiture.cor.ccs.semver.Version.Companion.version
 
 private class MappingOptions : OptionGroup(
     name = "Version Bumping Options",
@@ -49,6 +50,19 @@ private class MappingOptions : OptionGroup(
         .add(ChangeType.PATCH, patchTypes)
         .add(ChangeType.MINOR, minorTypes)
         .add(ChangeType.MAJOR, majorTypes)
+}
+
+
+private class LogOptions : OptionGroup() {
+    val release by option(
+        "-r", "--release",
+        help = "look for release version (ignore pre-releases)"
+    ).flag()
+
+    val target by option(
+        "-t", "--target",
+        help = "look for latest version before a given version (instead of HEAD)"
+    ).convert { version(it) }
 }
 
 class CCS(app: App) : NoOpCliktCommand() {
@@ -116,18 +130,18 @@ class CCS(app: App) : NoOpCliktCommand() {
             override fun run() {
                 echo(app.getChangeLogJson(release), trailingNewline = false)
             }
-        }, object : CliktCommand(name = "latest") {
-            val release by option(
-                "-r", "--release",
-                help = "look for release version (ignore pre-releases)"
-            ).flag()
+        }, object : CliktCommand(
+            name = "latest",
+            help = "find the latest version (release or pre-release)"
+        ) {
+            val logOptions by LogOptions()
 
             override fun run() {
-                val latestRelease = app.getLatestVersion(release)
-                if (latestRelease != null) {
-                    echo(latestRelease, trailingNewline = false)
+                val latestVersion = app.getLatestVersion(release = logOptions.release, before = logOptions.target)
+                if (latestVersion != null) {
+                    echo(latestVersion, trailingNewline = false)
                 } else {
-                    echo("no release found", err = true)
+                    echo("no version found", err = true)
                     throw ProgramResult(1)
                 }
             }

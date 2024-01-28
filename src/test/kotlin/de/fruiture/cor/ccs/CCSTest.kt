@@ -6,6 +6,7 @@ import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.ChangeType
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.DEFAULT_PRERELEASE
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
+import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.mockk.called
@@ -95,13 +96,19 @@ class CCSTest {
         } returns null
         val result = ccs.test("latest -r")
         result.statusCode shouldBe 1
-        result.stderr shouldBe "no release found\n"
+        result.stderr shouldBe "no version found\n"
     }
 
     @Test
     fun `get latest version tag`() {
         every { app.getLatestVersion() } returns "0.2.3-SNAP"
         ccs.test("latest").output shouldBe "0.2.3-SNAP"
+    }
+
+    @Test
+    fun `get latest -b`() {
+        every { app.getLatestVersion(before = version("1.0.0")) } returns "1.0.0-RC.5"
+        ccs.test("latest -t 1.0.0").output shouldBe "1.0.0-RC.5"
     }
 
     @Test

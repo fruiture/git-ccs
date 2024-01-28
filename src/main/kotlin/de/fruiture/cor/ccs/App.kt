@@ -41,10 +41,13 @@ class App(
 
     private fun getChanges(release: Boolean) = getLatest(release)?.let { git.getLog(it) } ?: git.getLog()
 
-    fun getLatestVersion(release: Boolean = false): String? =
-        getLatest(release)?.toString()
+    fun getLatestVersion(release: Boolean = false, before: Version? = null): String? =
+        getLatest(release, before)?.toString()
 
-    private fun getLatest(release: Boolean) = if (release) git.getLatestRelease() else git.getLatestVersion()
+    private fun getLatest(release: Boolean, before: Version? = null) =
+        if (release) git.getLatestRelease(before)
+        else git.getLatestVersion(before)
+
     fun getChangeLogMarkdown(release: Boolean = false, sections: Sections = Sections.default(), level: Int = 2) =
         sequence {
             val hl = "#".repeat(level)

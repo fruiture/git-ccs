@@ -19,34 +19,29 @@ class GitTest {
     )
 
     @Test
-    fun `get latest version using git for-each-ref`() {
-
+    fun `get latest version or release using git for-each-ref`() {
         val sys = mockk<SystemCaller>().apply {
             every { call("git", forEachRef) } returns SystemCallResult(
                 code = 0, stdout = listOf(
                     "2.1.0-SNAPSHOT.1",
                     "2.1.0-SNAPSHOT.2",
-                    "2.0.0"
+                    "2.0.0",
+                    "1.3.9",
+                    "1.3.9-RC.7"
                 )
             )
         }
 
         Git(sys).getLatestVersion() shouldBe version("2.1.0-SNAPSHOT.2")
-    }
-
-    @Test
-    fun `get latest proper release`() {
-        val sys = mockk<SystemCaller>().apply {
-            every { call("git", forEachRef) } returns SystemCallResult(
-                code = 0, stdout = listOf(
-                    "2.1.0-SNAPSHOT.1",
-                    "2.1.0-SNAPSHOT.2",
-                    "2.0.0"
-                )
-            )
-        }
+        Git(sys).getLatestVersion(before = version("2.1.0-SNAPSHOT.2")) shouldBe version("2.1.0-SNAPSHOT.1")
+        Git(sys).getLatestVersion(before = version("2.1.0-SNAPSHOT.1")) shouldBe version("2.0.0")
 
         Git(sys).getLatestRelease() shouldBe version("2.0.0")
+        Git(sys).getLatestRelease(before = version("2.1.0-SNAPSHOT.2")) shouldBe version("2.0.0")
+        Git(sys).getLatestRelease(before = version("2.0.0")) shouldBe version("1.3.9")
+        Git(sys).getLatestRelease(before = version("1.3.9")) shouldBe null
+        Git(sys).getLatestVersion(before = version("1.3.9")) shouldBe version("1.3.9-RC.7")
+        Git(sys).getLatestVersion(before = version("1.3.9-RC.7")) shouldBe null
     }
 
     @Test

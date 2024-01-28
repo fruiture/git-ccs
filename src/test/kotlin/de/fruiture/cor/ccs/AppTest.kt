@@ -23,6 +23,30 @@ class AppTest {
         )
     }
 
+    private val noReleaseYet = mockk<Git>().apply {
+        every { getLatestVersion() } returns null
+        every { getLatestRelease() } returns null
+        every { getLog(from = null) } returns listOf(
+            GitCommit("cafebabe", ZonedDateTime.parse("2001-01-01T13:00Z"), "feat: a feature is born")
+        )
+    }
+
+    private val hadABreakingChangeAfterSnapshot = mockk<Git>().apply {
+        every { getLatestVersion() } returns version("1.2.3-SNAPSHOT.5")
+        every { getLog(from = version("1.2.3-SNAPSHOT.5")) } returns listOf(
+            GitCommit("cafebabe", ZonedDateTime.parse("2001-01-01T13:00Z"), "feat!: a feature with a breaking change")
+        )
+    }
+
+    private val afterMultipleReleases = mockk<Git>().apply {
+        every { getLatestVersion(before = version("1.0.0")) } returns version("1.0.0-RC.3")
+        every { getLatestRelease(before = version("1.0.0")) } returns version("0.3.7") as Release
+
+        every { getLog(from = version("1.0.0-RC3")) } returns listOf(
+            GitCommit("cafebabe", ZonedDateTime.parse("2001-01-01T13:00Z"), "feat!: a feature with a breaking change")
+        )
+    }
+
     @Test
     fun `get next release version`() {
         App(oneFeatureAfterMajorRelease).getNextRelease() shouldBe "1.1.0"
@@ -32,14 +56,6 @@ class AppTest {
     fun `get next pre-release version`() {
         App(oneFeatureAfterMajorRelease).getNextPreRelease(counter()) shouldBe "1.1.0-SNAPSHOT.1"
         App(oneFeatureAfterMajorRelease).getNextPreRelease(counter("alpha".alphanumeric)) shouldBe "1.1.0-alpha.1"
-    }
-
-    private val noReleaseYet = mockk<Git>().apply {
-        every { getLatestVersion() } returns null
-        every { getLatestRelease() } returns null
-        every { getLog(from = null) } returns listOf(
-            GitCommit("cafebabe", ZonedDateTime.parse("2001-01-01T13:00Z"), "feat: a feature is born")
-        )
     }
 
 
@@ -61,13 +77,6 @@ class AppTest {
                 """"conventionalCommit":{"type":"feat","description":"a feature is born"}}]"""
     }
 
-
-    private val hadABreakingChangeAfterSnapshot = mockk<Git>().apply {
-        every { getLatestVersion() } returns version("1.2.3-SNAPSHOT.5")
-        every { getLog(from = version("1.2.3-SNAPSHOT.5")) } returns listOf(
-            GitCommit("cafebabe", ZonedDateTime.parse("2001-01-01T13:00Z"), "feat!: a feature with a breaking change")
-        )
-    }
 
     @Test
     fun `breaking change is recognized`() {
@@ -100,7 +109,7 @@ class AppTest {
     }
 
     @Test
-    fun `get markdiwn with breaking changes`() {
+    fun `get markdown with breaking changes`() {
         App(hadABreakingChangeAfterSnapshot).getChangeLogMarkdown(
             release = false,
             sections = Sections().setBreakingChanges("API broken")
@@ -110,5 +119,11 @@ class AppTest {
             * a feature with a breaking change
             
         """.trimIndent()
+    }
+
+    @Test
+    fun `get latest version before another version`() {
+        App(afterMultipleReleases).getLatestVersion(before = version("1.0.0")) shouldBe "1.0.0-RC.3"
+        App(afterMultipleReleases).getLatestVersion(release = true, before = version("1.0.0")) shouldBe "0.3.7"
     }
 }

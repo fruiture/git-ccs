@@ -6,23 +6,26 @@ import de.fruiture.cor.ccs.semver.Version.Companion.extractVersion
 import java.time.ZonedDateTime
 
 class Git(private val sys: SystemCaller) {
-    fun getLatestVersion(): Version? {
-        return getAllVersionTags().maxOrNull()
+    fun getLatestVersion(before: Version? = null): Version? {
+        return getAllVersionTags(before).maxOrNull()
     }
 
-    fun getLatestRelease(): Release? {
-        return getAllVersionTags().filterIsInstance<Release>().maxOrNull()
+    fun getLatestRelease(before: Version? = null): Release? {
+        return getAllVersionTags(before).filterIsInstance<Release>().maxOrNull()
     }
 
-    private fun getAllVersionTags() = git(
-        listOf(
-            "for-each-ref",
-            "--merged", "HEAD",
-            "--sort=-committerdate",
-            "--format=%(refname:short)",
-            "refs/tags/*.*.*"
-        )
-    ).mapNotNull { extractVersion(it) }
+    private fun getAllVersionTags(before: Version?): List<Version> {
+        val filter = before?.let { { v: Version -> v < it } } ?: { true }
+        return git(
+            listOf(
+                "for-each-ref",
+                "--merged", "HEAD",
+                "--sort=-committerdate",
+                "--format=%(refname:short)",
+                "refs/tags/*.*.*"
+            )
+        ).mapNotNull { extractVersion(it) }.filter(filter)
+    }
 
     fun getLog(from: Version? = null): List<GitCommit> {
         val arguments = listOf("log", "--format=format:%H %aI%n%B%n", "-z",
