@@ -108,7 +108,7 @@ class CCSTest {
     }
 
     @Test
-    fun `get latest -b`() {
+    fun `get latest -t`() {
         every { app.getLatestVersion(before = version("1.0.0")) } returns "1.0.0-RC.5"
         ccs.test("latest -t 1.0.0").output shouldBe "1.0.0-RC.5"
     }
@@ -117,6 +117,12 @@ class CCSTest {
     fun `get log since release`() {
         every { app.getChangeLogJson(true) } returns "[{json}]"
         ccs.test("log --release").output shouldBe "[{json}]"
+    }
+
+    @Test
+    fun `log -t`() {
+        every { app.getChangeLogJson(true, before = version("1.0.0")) } returns "[{json}]"
+        ccs.test("log --release --target 1.0.0").output shouldBe "[{json}]"
     }
 
     @Test

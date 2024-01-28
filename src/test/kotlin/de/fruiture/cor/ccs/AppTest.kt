@@ -42,8 +42,8 @@ class AppTest {
         every { getLatestVersion(before = version("1.0.0")) } returns version("1.0.0-RC.3")
         every { getLatestRelease(before = version("1.0.0")) } returns version("0.3.7") as Release
 
-        every { getLog(from = version("1.0.0-RC3")) } returns listOf(
-            GitCommit("cafebabe", ZonedDateTime.parse("2001-01-01T13:00Z"), "feat!: a feature with a breaking change")
+        every { getLog(from = version("0.3.7"),  to = version("1.0.0")) } returns listOf(
+            GitCommit("cafebabe", ZonedDateTime.parse("2001-01-01T13:00Z"), "feat: range change")
         )
     }
 
@@ -77,6 +77,12 @@ class AppTest {
                 """"conventionalCommit":{"type":"feat","description":"a feature is born"}}]"""
     }
 
+    @Test
+    fun `get change log before a certain version`() {
+        App(afterMultipleReleases).getChangeLogJson(release = true, before = version("1.0.0")) shouldBe
+                """[{"hash":"cafebabe","date":"2001-01-01T13:00Z","message":"feat: range change",""" +
+                """"conventionalCommit":{"type":"feat","description":"range change"}}]"""
+    }
 
     @Test
     fun `breaking change is recognized`() {

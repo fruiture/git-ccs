@@ -56,7 +56,7 @@ private class MappingOptions : OptionGroup(
 private class LogOptions : OptionGroup() {
     val release by option(
         "-r", "--release",
-        help = "look for release version (ignore pre-releases)"
+        help = "only consider releases (ignore pre-releases)"
     ).flag()
 
     val target by option(
@@ -121,14 +121,17 @@ class CCS(app: App) : NoOpCliktCommand() {
                         }
                     })
             }
-        }, object : CliktCommand(name = "log") {
-            val release by option(
-                "-r", "--release",
-                help = "since last release version (ignore pre-releases)"
-            ).flag()
+        }, object : CliktCommand(
+            name = "log",
+            help = "get commit log since last version as machine-friendly JSON representation"
+        ) {
+            val logOptions by LogOptions()
 
             override fun run() {
-                echo(app.getChangeLogJson(release), trailingNewline = false)
+                echo(
+                    app.getChangeLogJson(release = logOptions.release, before = logOptions.target),
+                    trailingNewline = false
+                )
             }
         }, object : CliktCommand(
             name = "latest",

@@ -27,9 +27,10 @@ class Git(private val sys: SystemCaller) {
         ).mapNotNull { extractVersion(it) }.filter(filter)
     }
 
-    fun getLog(from: Version? = null): List<GitCommit> {
+    fun getLog(from: Version? = null, to: Version? = null): List<GitCommit> {
+        val end = to?.toString() ?: "HEAD"
         val arguments = listOf("log", "--format=format:%H %aI%n%B%n", "-z",
-            from?.let { "$it..HEAD" } ?: "HEAD"
+            from?.let { "$it..$end" } ?: end
         )
         val result = git(arguments)
 

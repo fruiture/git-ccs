@@ -1,6 +1,7 @@
 package de.fruiture.cor.ccs.git
 
 import de.fruiture.cor.ccs.semver.Version.Companion.version
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -153,4 +154,25 @@ class GitTest {
             )
         )
     }
+
+    @Test
+    fun `get log until a version`() {
+        val sys = mockk<SystemCaller>().apply {
+            every {
+                call(
+                    "git", listOf(
+                        "log",
+                        "--format=format:%H %aI%n%B%n", "-z", "1.0.0"
+                    )
+                )
+            } returns SystemCallResult(
+                0, stdout = """
+                        b8d181d9e803da9ceba0c3c4918317124d678656 2024-01-20T21:31:01+01:00
+                        first commit
+                    """.trimIndent().lines()
+            )
+        }
+        Git(sys).getLog(to = version("1.0.0")) shouldHaveSize 1
+    }
+
 }

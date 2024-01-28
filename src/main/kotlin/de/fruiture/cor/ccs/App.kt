@@ -35,13 +35,14 @@ class App(
     @OptIn(ExperimentalSerializationApi::class)
     private val json = Json { explicitNulls = false }
 
-    fun getChangeLogJson(release: Boolean = false): String {
-        val commits = getChanges(release)
+    fun getChangeLogJson(release: Boolean = false, before: Version? = null): String {
+        val commits = getChanges(release, before)
 
         return json.encodeToString(commits)
     }
 
-    private fun getChanges(release: Boolean) = getLatest(release)?.let { git.getLog(it) } ?: git.getLog()
+    private fun getChanges(release: Boolean, before: Version? = null) =
+        getLatest(release, before)?.let { git.getLog(from = it, to = before) } ?: git.getLog(to = before)
 
     fun getLatestVersion(release: Boolean = false, before: Version? = null): String? =
         getLatest(release, before)?.toString()
