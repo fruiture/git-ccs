@@ -148,11 +148,11 @@ class CCS(app: App) : NoOpCliktCommand() {
                     throw ProgramResult(1)
                 }
             }
-        }, object : CliktCommand(name = "changes") {
-            val release by option(
-                "-r", "--release",
-                help = "since last release version (ignore pre-releases)"
-            ).flag()
+        }, object : CliktCommand(
+            name = "changes",
+            help = "summarize changes (see `log`) as markdown document (changelog)"
+        ) {
+            val logOptions by LogOptions()
 
             val sections by option(
                 "-s", "--section",
@@ -177,7 +177,8 @@ class CCS(app: App) : NoOpCliktCommand() {
 
                 echo(
                     app.getChangeLogMarkdown(
-                        release = release,
+                        release = logOptions.release,
+                        target = logOptions.target,
                         sections = config.setBreakingChanges(breakingChanges),
                         level = level
                     ),

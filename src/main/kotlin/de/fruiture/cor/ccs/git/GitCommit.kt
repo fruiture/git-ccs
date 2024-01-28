@@ -1,6 +1,8 @@
 package de.fruiture.cor.ccs.git
 
+import de.fruiture.cor.ccs.cc.Body
 import de.fruiture.cor.ccs.cc.ConventionalCommitMessage
+import de.fruiture.cor.ccs.cc.Description
 import de.fruiture.cor.ccs.cc.Type
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -35,9 +37,18 @@ data class GitCommit(
 ) {
     @OptIn(ExperimentalSerializationApi::class)
     @EncodeDefault
-    val conventionalCommit =
-        runCatching { ConventionalCommitMessage.message(message) }.getOrNull()
+    val conventional =
+        runCatching { ConventionalCommitMessage.message(message) }.getOrElse {
+            val lines = message.lines()
+            val bodyText = lines.dropLast(1).joinToString("\n").trim()
 
-    val type = conventionalCommit?.type ?: NON_CONVENTIONAL_COMMIT_TYPE
-    val hasBreakingChange = conventionalCommit?.hasBreakingChange ?: false
+            ConventionalCommitMessage(
+                type = NON_CONVENTIONAL_COMMIT_TYPE,
+                description = Description(lines.first()),
+                body = if(bodyText.isNotBlank()) Body(bodyText) else null
+            )
+        }
+
+    val type = conventional.type
+    val hasBreakingChange = conventional.hasBreakingChange
 }

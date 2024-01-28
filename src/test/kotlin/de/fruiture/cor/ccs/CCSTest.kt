@@ -132,6 +132,14 @@ class CCSTest {
     }
 
     @Test
+    fun `changes -t`() {
+        every { app.getChangeLogMarkdown(true, target = version("1.0.0")) } returns
+                "*markdown of changes leading to 1.0.0"
+
+        ccs.test("changes -rt 1.0.0").output shouldBe "*markdown of changes leading to 1.0.0"
+    }
+
+    @Test
     fun `markdown with custom headings`() {
         every {
             app.getChangeLogMarkdown(

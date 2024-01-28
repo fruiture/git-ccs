@@ -51,11 +51,16 @@ class App(
         if (release) git.getLatestRelease(before)
         else git.getLatestVersion(before)
 
-    fun getChangeLogMarkdown(release: Boolean = false, sections: Sections = Sections.default(), level: Int = 2) =
+    fun getChangeLogMarkdown(
+        release: Boolean = false,
+        target: Version? = null,
+        sections: Sections = Sections.default(),
+        level: Int = 2
+    ) =
         sequence {
             val hl = "#".repeat(level)
 
-            val commits = getChanges(release).mapNotNull { it.conventionalCommit }
+            val commits = getChanges(release, target).map { it.conventional }
 
             val breakingChanges = commits.mapNotNull { it.breakingChange }
             if (breakingChanges.isNotEmpty()) {
