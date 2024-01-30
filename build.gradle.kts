@@ -2,6 +2,8 @@ plugins {
     kotlin("jvm") version "1.9.21"
     kotlin("plugin.serialization") version "1.9.21"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    `maven-publish`
+    signing
 }
 
 group = "de.fruiture.cor.ccs"
@@ -30,6 +32,7 @@ tasks {
     }
 
     shadowJar {
+        archiveClassifier = "all"
         manifest {
             attributes(mapOf("Main-Class" to "de.fruiture.cor.ccs.CLIKt"))
         }
@@ -38,4 +41,17 @@ tasks {
     build {
         dependsOn(shadowJar)
     }
+
+    create<Jar>("javadocJar") {
+        group = JavaBasePlugin.DOCUMENTATION_GROUP
+        archiveClassifier = "javadoc"
+        from(javadoc)
+    }
+}
+
+
+
+artifacts {
+    archives(tasks["javadocJar"])
+    archives(tasks.kotlinSourcesJar)
 }
