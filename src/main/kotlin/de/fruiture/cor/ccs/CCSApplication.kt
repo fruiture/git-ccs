@@ -9,7 +9,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class App(
+class CCSApplication(
     private val git: Git
 ) {
     private fun getChangeType(latestVersion: Version, mapping: ChangeMapping) =

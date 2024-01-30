@@ -17,10 +17,10 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 
-class CCSTest {
+class CLITest {
 
-    private val app = mockk<App>(relaxed = true)
-    private val ccs = CCS(app)
+    private val app = mockk<CCSApplication>(relaxed = true)
+    private val cli = CLI(app)
 
     init {
         every { app.getNextRelease() } returns version("1.2.3") as Release
@@ -30,25 +30,25 @@ class CCSTest {
 
     @Test
     fun `next release`() {
-        ccs.test("next release").output shouldBe "1.2.3"
+        cli.test("next release").output shouldBe "1.2.3"
         verify { app.getNextRelease() }
     }
 
     @Test
     fun `next pre-release`() {
-        ccs.test("next pre-release").output shouldBe "1.2.3-SNAPSHOT.5"
+        cli.test("next pre-release").output shouldBe "1.2.3-SNAPSHOT.5"
         verify { app.getNextPreRelease(counter(DEFAULT_PRERELEASE)) }
     }
 
     @Test
     fun `next pre-release RC`() {
-        ccs.test("next pre-release -i RC").output shouldBe "1.2.3-RC.1"
+        cli.test("next pre-release -i RC").output shouldBe "1.2.3-RC.1"
         verify { app.getNextPreRelease(counter("RC".alphanumeric)) }
     }
 
     @Test
     fun `show help`() {
-        ccs.test("next --help").output shouldStartWith """
+        cli.test("next --help").output shouldStartWith """
             Usage: ccs next [<options>] <command> [<args>]...
 
               compute the next semantic version based on changes since the last version tag
@@ -58,12 +58,12 @@ class CCSTest {
 
     @Test
     fun `show help when nothing`() {
-        ccs.test("").output shouldStartWith "Usage: ccs"
+        cli.test("").output shouldStartWith "Usage: ccs"
     }
 
     @Test
     fun `illegal command`() {
-        ccs.test("nope").stderr shouldBe """
+        cli.test("nope").stderr shouldBe """
             Usage: ccs [<options>] <command> [<args>]...
 
             Error: no such subcommand nope
@@ -80,7 +80,7 @@ class CCSTest {
             )
         } returns version("1.1.1") as Release
 
-        ccs.test("next release -n default").output shouldBe "1.1.1"
+        cli.test("next release -n default").output shouldBe "1.1.1"
     }
 
     @Test
@@ -88,7 +88,7 @@ class CCSTest {
         every {
             app.getLatestVersion(true)
         } returns "0.2.3"
-        ccs.test("latest -r").output shouldBe "0.2.3"
+        cli.test("latest -r").output shouldBe "0.2.3"
     }
 
     @Test
@@ -96,7 +96,7 @@ class CCSTest {
         every {
             app.getLatestVersion(true)
         } returns null
-        val result = ccs.test("latest -r")
+        val result = cli.test("latest -r")
         result.statusCode shouldBe 1
         result.stderr shouldBe "no version found\n"
     }
@@ -104,31 +104,31 @@ class CCSTest {
     @Test
     fun `get latest version tag`() {
         every { app.getLatestVersion() } returns "0.2.3-SNAP"
-        ccs.test("latest").output shouldBe "0.2.3-SNAP"
+        cli.test("latest").output shouldBe "0.2.3-SNAP"
     }
 
     @Test
     fun `get latest -t`() {
         every { app.getLatestVersion(before = version("1.0.0")) } returns "1.0.0-RC.5"
-        ccs.test("latest -t 1.0.0").output shouldBe "1.0.0-RC.5"
+        cli.test("latest -t 1.0.0").output shouldBe "1.0.0-RC.5"
     }
 
     @Test
     fun `get log since release`() {
         every { app.getChangeLogJson(true) } returns "[{json}]"
-        ccs.test("log --release").output shouldBe "[{json}]"
+        cli.test("log --release").output shouldBe "[{json}]"
     }
 
     @Test
     fun `log -t`() {
         every { app.getChangeLogJson(true, before = version("1.0.0")) } returns "[{json}]"
-        ccs.test("log --release --target 1.0.0").output shouldBe "[{json}]"
+        cli.test("log --release --target 1.0.0").output shouldBe "[{json}]"
     }
 
     @Test
     fun `get markdown`() {
         every { app.getChangeLogMarkdown(false) } returns "*markdown*"
-        ccs.test("changes").output shouldBe "*markdown*"
+        cli.test("changes").output shouldBe "*markdown*"
     }
 
     @Test
@@ -136,7 +136,7 @@ class CCSTest {
         every { app.getChangeLogMarkdown(true, target = version("1.0.0")) } returns
                 "*markdown of changes leading to 1.0.0"
 
-        ccs.test("changes -rt 1.0.0").output shouldBe "*markdown of changes leading to 1.0.0"
+        cli.test("changes -rt 1.0.0").output shouldBe "*markdown of changes leading to 1.0.0"
     }
 
     @Test
@@ -148,6 +148,6 @@ class CCSTest {
                 level = 1
             )
         } returns "# Fun"
-        ccs.test("changes -s 'Fun=feat' -l 1").output shouldBe "# Fun"
+        cli.test("changes -s 'Fun=feat' -l 1").output shouldBe "# Fun"
     }
 }

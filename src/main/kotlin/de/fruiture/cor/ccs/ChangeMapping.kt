@@ -5,11 +5,13 @@ import de.fruiture.cor.ccs.git.GitCommit
 import de.fruiture.cor.ccs.semver.ChangeType
 
 val DEFAULT_COMMIT_TYPE = Type("default")
+val FEATURE_COMMIT_TYPE = Type("feat")
+val FIX_COMMIT_TYPE = Type("fix")
 
 data class ChangeMapping(
     private val types: Map<Type, ChangeType> = mapOf(
-        Type("feat") to ChangeType.MINOR,
-        Type("fix") to ChangeType.PATCH,
+        FEATURE_COMMIT_TYPE to ChangeType.MINOR,
+        FIX_COMMIT_TYPE to ChangeType.PATCH,
         DEFAULT_COMMIT_TYPE to ChangeType.PATCH
     )
 ) {

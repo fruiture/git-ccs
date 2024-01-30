@@ -13,8 +13,8 @@ data class Sections(
     companion object {
         fun default() = Sections(
             mapOf(
-                "Features" to setOf(Type("feat")),
-                "Bugfixes" to setOf(Type("fix")),
+                "Features" to setOf(FEATURE_COMMIT_TYPE),
+                "Bugfixes" to setOf(FIX_COMMIT_TYPE),
                 "Other" to setOf(DEFAULT_COMMIT_TYPE),
             )
         )

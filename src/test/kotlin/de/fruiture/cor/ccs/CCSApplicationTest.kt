@@ -13,7 +13,7 @@ import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
 
-class AppTest {
+class CCSApplicationTest {
 
     private val oneFeatureAfterMajorRelease = mockk<Git>().apply {
         every { getLatestVersion() } returns version("1.0.0")
@@ -59,67 +59,67 @@ class AppTest {
 
     @Test
     fun `get next release version`() {
-        App(oneFeatureAfterMajorRelease).getNextRelease() shouldBe version("1.1.0")
+        CCSApplication(oneFeatureAfterMajorRelease).getNextRelease() shouldBe version("1.1.0")
     }
 
     @Test
     fun `get next pre-release version`() {
-        App(oneFeatureAfterMajorRelease).getNextPreRelease(counter()) shouldBe version("1.1.0-SNAPSHOT.1")
-        App(oneFeatureAfterMajorRelease).getNextPreRelease(counter("alpha".alphanumeric)) shouldBe version("1.1.0-alpha.1")
+        CCSApplication(oneFeatureAfterMajorRelease).getNextPreRelease(counter()) shouldBe version("1.1.0-SNAPSHOT.1")
+        CCSApplication(oneFeatureAfterMajorRelease).getNextPreRelease(counter("alpha".alphanumeric)) shouldBe version("1.1.0-alpha.1")
     }
 
 
     @Test
     fun `get initial release or snapshot`() {
-        App(noReleaseYet).getNextRelease() shouldBe version("0.0.1")
-        App(noReleaseYet).getNextPreRelease(counter("RC".alphanumeric)) shouldBe version("0.0.1-RC.1")
-        App(noReleaseYet).getNextPreRelease(counter()) shouldBe version("0.0.1-SNAPSHOT.1")
+        CCSApplication(noReleaseYet).getNextRelease() shouldBe version("0.0.1")
+        CCSApplication(noReleaseYet).getNextPreRelease(counter("RC".alphanumeric)) shouldBe version("0.0.1-RC.1")
+        CCSApplication(noReleaseYet).getNextPreRelease(counter()) shouldBe version("0.0.1-SNAPSHOT.1")
     }
 
     @Test
     fun `get change log`() {
-        App(oneFeatureAfterMajorRelease).getChangeLogJson() shouldBe
+        CCSApplication(oneFeatureAfterMajorRelease).getChangeLogJson() shouldBe
                 """[{"hash":"cafebabe","date":"2001-01-01T13:00Z","message":"feat: a feature is born",""" +
                 """"conventional":{"type":"feat","description":"a feature is born"}}]"""
 
-        App(noReleaseYet).getChangeLogJson() shouldBe
+        CCSApplication(noReleaseYet).getChangeLogJson() shouldBe
                 """[{"hash":"cafebabe","date":"2001-01-01T13:00Z","message":"feat: a feature is born",""" +
                 """"conventional":{"type":"feat","description":"a feature is born"}}]"""
     }
 
     @Test
     fun `get change log before a certain version`() {
-        App(afterMultipleReleases).getChangeLogJson(release = true, before = version("1.0.0")) shouldBe
+        CCSApplication(afterMultipleReleases).getChangeLogJson(release = true, before = version("1.0.0")) shouldBe
                 """[{"hash":"cafebabe","date":"2001-01-01T13:00Z","message":"feat: range change",""" +
                 """"conventional":{"type":"feat","description":"range change"}}]"""
     }
 
     @Test
     fun `breaking change is recognized`() {
-        App(hadABreakingChangeAfterSnapshot).getNextRelease() shouldBe version("2.0.0")
-        App(hadABreakingChangeAfterSnapshot).getNextPreRelease(counter()) shouldBe version("2.0.0-SNAPSHOT.1")
+        CCSApplication(hadABreakingChangeAfterSnapshot).getNextRelease() shouldBe version("2.0.0")
+        CCSApplication(hadABreakingChangeAfterSnapshot).getNextPreRelease(counter()) shouldBe version("2.0.0-SNAPSHOT.1")
     }
 
     @Test
     fun `get latest release`() {
-        App(oneFeatureAfterMajorRelease).getLatestVersion(true) shouldBe "1.0.0"
-        App(noReleaseYet).getLatestVersion(true) shouldBe null
+        CCSApplication(oneFeatureAfterMajorRelease).getLatestVersion(true) shouldBe "1.0.0"
+        CCSApplication(noReleaseYet).getLatestVersion(true) shouldBe null
     }
 
     @Test
     fun `get latest version`() {
-        App(hadABreakingChangeAfterSnapshot).getLatestVersion() shouldBe "1.2.3-SNAPSHOT.5"
+        CCSApplication(hadABreakingChangeAfterSnapshot).getLatestVersion() shouldBe "1.2.3-SNAPSHOT.5"
     }
 
     @Test
     fun `get latest version before another version`() {
-        App(afterMultipleReleases).getLatestVersion(before = version("1.0.0")) shouldBe "1.0.0-RC.3"
-        App(afterMultipleReleases).getLatestVersion(release = true, before = version("1.0.0")) shouldBe "0.3.7"
+        CCSApplication(afterMultipleReleases).getLatestVersion(before = version("1.0.0")) shouldBe "1.0.0-RC.3"
+        CCSApplication(afterMultipleReleases).getLatestVersion(release = true, before = version("1.0.0")) shouldBe "0.3.7"
     }
 
     @Test
     fun `get markdown`() {
-        App(oneFeatureAfterMajorRelease).getChangeLogMarkdown(
+        CCSApplication(oneFeatureAfterMajorRelease).getChangeLogMarkdown(
             release = false,
             sections = Sections(mapOf("Neue Funktionen" to setOf(Type("feat"))))
         ) shouldBe """
@@ -132,7 +132,7 @@ class AppTest {
 
     @Test
     fun `get markdown with breaking changes`() {
-        App(hadABreakingChangeAfterSnapshot).getChangeLogMarkdown(
+        CCSApplication(hadABreakingChangeAfterSnapshot).getChangeLogMarkdown(
             release = false,
             sections = Sections().setBreakingChanges("API broken")
         ) shouldBe """
@@ -145,7 +145,7 @@ class AppTest {
 
     @Test
     fun `summarize various types`() {
-        App(mixedBagOfCommits).getChangeLogMarkdown() shouldBe """
+        CCSApplication(mixedBagOfCommits).getChangeLogMarkdown() shouldBe """
             ## Features
             
             * feature1

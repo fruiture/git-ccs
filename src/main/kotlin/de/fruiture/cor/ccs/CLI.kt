@@ -65,7 +65,10 @@ private class LogOptions : OptionGroup() {
     ).convert { version(it) }
 }
 
-class CCS(app: App) : NoOpCliktCommand() {
+class CLI(app: CCSApplication) : NoOpCliktCommand(
+    name = "ccs",
+    help = "Conventional Commits & Semantic Versioning Utility for Git Repositories"
+) {
     init {
         subcommands(object : NoOpCliktCommand(
             name = "next",
@@ -190,6 +193,6 @@ class CCS(app: App) : NoOpCliktCommand() {
 }
 
 fun main(args: Array<String>) {
-    CCS(App(Git(JvmProcessCaller()))).main(args)
+    CLI(CCSApplication(Git(JvmProcessCaller()))).main(args)
 }
 

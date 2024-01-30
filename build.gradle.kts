@@ -31,7 +31,7 @@ tasks {
 
     shadowJar {
         manifest {
-            attributes(mapOf("Main-Class" to "de.fruiture.cor.ccs.CCSKt"))
+            attributes(mapOf("Main-Class" to "de.fruiture.cor.ccs.CLIKt"))
         }
     }
 
