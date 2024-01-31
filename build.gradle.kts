@@ -6,8 +6,8 @@ plugins {
     signing
 }
 
-group = "de.fruiture.cor.ccs"
-version = "1.0.0-SNAPSHOT"
+val ossrhUsername: String by project
+val ossrhPassword: String by project
 
 repositories {
     mavenCentral()
@@ -47,11 +47,74 @@ tasks {
         archiveClassifier = "javadoc"
         from(javadoc)
     }
+
 }
-
-
 
 artifacts {
     archives(tasks["javadocJar"])
     archives(tasks.kotlinSourcesJar)
+}
+
+publishing {
+    repositories {
+        maven {
+            val nexusUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+            val nexusUrlSnapshots = uri("https://oss.sonatype.org/content/repositories/snapshots")
+
+            credentials {
+                this.username = ossrhUsername
+                this.password = ossrhPassword
+            }
+
+            url = if (version.toString().endsWith("SNAPSHOT")) nexusUrlSnapshots
+            else nexusUrl
+        }
+    }
+    publications {
+        create<MavenPublication>("maven") {
+            val githubRepo = "fruiture/git-ccs"
+
+            groupId = project.group.toString()
+            artifactId = project.name
+            version = project.version.toString()
+
+            from(components["kotlin"])
+            // could not find a more elegant solution here...
+            artifact(tasks.shadowJar)
+            artifact(tasks.kotlinSourcesJar)
+            artifact(tasks["javadocJar"])
+
+            pom {
+                name = project.name
+                description = project.description
+                url = "https://github.com/${githubRepo}"
+                packaging = "jar"
+
+                licenses {
+                    license {
+                        name = "MIT"
+                        url = "https://opensource.org/license/mit/"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "richard-wallintin"
+                        name = "Richard Wallintin"
+                    }
+                }
+                scm {
+                    url = "https://github.com/${githubRepo}.git"
+                    connection = "scm:git:git://github.com/${githubRepo}.git"
+                    developerConnection = "scm:git:git://github.com/${githubRepo}.git"
+                }
+                issueManagement {
+                    url = "https://github.com/${githubRepo}/issues"
+                }
+            }
+        }
+    }
+}
+
+signing {
+    sign(publishing.publications["maven"])
 }
