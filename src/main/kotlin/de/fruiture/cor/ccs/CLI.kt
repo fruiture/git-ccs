@@ -9,7 +9,7 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.int
 import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.git.Git
-import de.fruiture.cor.ccs.git.JvmProcessCaller
+import de.fruiture.cor.ccs.git.KommandSystemCaller
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.ChangeType
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.DEFAULT_PRERELEASE
@@ -193,6 +193,6 @@ class CLI(app: CCSApplication) : NoOpCliktCommand(
 }
 
 fun main(args: Array<String>) {
-    CLI(CCSApplication(Git(JvmProcessCaller()))).main(args)
+    CLI(CCSApplication(Git(KommandSystemCaller()))).main(args)
 }
 

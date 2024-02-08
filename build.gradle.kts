@@ -16,6 +16,7 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("com.github.ajalt.clikt:clikt:4.2.2")
+    implementation("com.kgit2:kommand:2.0.1")
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.10")
     testImplementation("io.kotest:kotest-assertions-core:5.6.2")
     testImplementation("io.mockk:mockk:1.13.9")
