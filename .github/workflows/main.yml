@@ -17,6 +17,7 @@ jobs:
       - name: Configure JDK
         uses: actions/setup-java@v4
         with:
+          distribution: 'temurin'
           java-version: 21
           cache: 'gradle'
       - name: RunAllTests
