@@ -21,7 +21,12 @@ jobs:
           java-version: 21
           cache: 'gradle'
       - name: RunAllTests
-        run: ./gradlew build
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PRIVATE_KEY_PASSWORD: ${{ secrets.GPG_PRIVATE_KEY_PASSWORD }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        run: ./gradlew build publishToMavenLocal
       - name: Upload Linux Executables
         uses: actions/upload-artifact@v4
         with:
