@@ -23,7 +23,7 @@ data class ChangeMapping(
         if (commit.hasBreakingChange) ChangeType.MAJOR
         else of(commit.type)
 
-    fun of(type: Type) = types.getOrDefault(type, defaultChange)
+    fun of(type: Type) = types.getOrElse(type) { defaultChange }
 
     operator fun plus(type: Pair<Type, ChangeType>) =
         copy(types = types + type)
