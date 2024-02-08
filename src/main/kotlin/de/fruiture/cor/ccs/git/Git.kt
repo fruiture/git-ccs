@@ -5,6 +5,8 @@ import de.fruiture.cor.ccs.semver.Version
 import de.fruiture.cor.ccs.semver.Version.Companion.extractVersion
 import java.time.ZonedDateTime
 
+const val RECORD_SEPARATOR = '\u001e'
+
 class Git(private val sys: SystemCaller) {
     fun getLatestVersion(before: Version? = null): Version? {
         return getAllVersionTags(before).maxOrNull()
@@ -29,20 +31,18 @@ class Git(private val sys: SystemCaller) {
 
     fun getLog(from: Version? = null, to: Version? = null): List<GitCommit> {
         val end = to?.toString() ?: "HEAD"
-        val arguments = listOf("log", "--format=format:%H %aI%n%B%n", "-z",
+        val arguments = listOf("log", "--format=format:%H %aI%n%B%n%x1E",
             from?.let { "$it..$end" } ?: end
         )
         val result = git(arguments)
 
-        return result.joinToString("\n").split(Char.MIN_VALUE).mapNotNull {
-            Regex(
-                "^(\\S+) (\\S+)\\n(.+?)?",
-                RegexOption.DOT_MATCHES_ALL
-            ).matchEntire(it)?.destructured?.let { (hash, date, msg) ->
+        return result.joinToString("\n").split(RECORD_SEPARATOR).map(String::trim).mapNotNull {
+            Regex("^(\\S+) (\\S+)\\n").matchAt(it, 0)?.let { match ->
+                val (hash, date) = match.destructured
                 GitCommit(
                     hash = hash,
                     date = ZonedDateTime.parse(date),
-                    message = msg.trim()
+                    message = it.substring(match.range.last + 1)
                 )
             }
         }

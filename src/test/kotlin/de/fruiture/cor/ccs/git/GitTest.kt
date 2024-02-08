@@ -92,7 +92,7 @@ class GitTest {
         val sys = object : SystemCaller {
             override fun call(command: String, arguments: List<String>): SystemCallResult {
                 command shouldBe "git"
-                arguments shouldBe listOf("log", "--format=format:%H %aI%n%B%n", "-z", "1.0.0..HEAD")
+                arguments shouldBe listOf("log", "--format=format:%H %aI%n%B%n%x1E", "1.0.0..HEAD")
 
                 return SystemCallResult(
                     code = 0,
@@ -102,7 +102,8 @@ class GitTest {
 
                         BREAKING CHANGE: did something dudu here
 
-                        ${Char.MIN_VALUE}b8d181d9e803da9ceba0c3c4918317124d678656 2024-01-20T21:31:01+01:00
+                        ${RECORD_SEPARATOR}
+                        b8d181d9e803da9ceba0c3c4918317124d678656 2024-01-20T21:31:01+01:00
                         non conventional commit
                     """.trimIndent().lines()
                 )
@@ -134,7 +135,7 @@ class GitTest {
         val sys = object : SystemCaller {
             override fun call(command: String, arguments: List<String>): SystemCallResult {
                 command shouldBe "git"
-                arguments shouldBe listOf("log", "--format=format:%H %aI%n%B%n", "-z", "HEAD")
+                arguments shouldBe listOf("log", "--format=format:%H %aI%n%B%n%x1E", "HEAD")
 
                 return SystemCallResult(
                     code = 0,
@@ -162,7 +163,7 @@ class GitTest {
                 call(
                     "git", listOf(
                         "log",
-                        "--format=format:%H %aI%n%B%n", "-z", "1.0.0"
+                        "--format=format:%H %aI%n%B%n%x1E", "1.0.0"
                     )
                 )
             } returns SystemCallResult(
