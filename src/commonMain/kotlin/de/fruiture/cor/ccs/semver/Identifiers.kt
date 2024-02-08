@@ -1,5 +1,7 @@
 package de.fruiture.cor.ccs.semver
 
+import kotlin.jvm.JvmInline
+
 private const val LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 private const val NON_DIGITS = "-$LETTERS"
 private const val POSITIVE_DIGITS = "123456789"

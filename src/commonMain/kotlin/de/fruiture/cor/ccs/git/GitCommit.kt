@@ -7,6 +7,7 @@ import de.fruiture.cor.ccs.cc.Type
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmInline
 
 @JvmInline
 @Serializable

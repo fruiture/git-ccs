@@ -1,9 +1,37 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
+
 plugins {
-    kotlin("jvm") version "1.9.21"
-    kotlin("plugin.serialization") version "1.9.21"
+    kotlin("multiplatform") version "1.9.22"
+    kotlin("plugin.serialization") version "1.9.22"
+
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("org.jetbrains.dokka") version "1.9.10"
+
     `maven-publish`
     signing
+}
+
+fun KotlinJvmTarget.registerShadowJar(mainClassName: String) {
+    val targetName = name
+    compilations.named("main") {
+        tasks {
+            val shadowJar = register<ShadowJar>("${targetName}ShadowJar") {
+                group = "build"
+                from(output)
+                configurations = listOf(runtimeDependencyFiles)
+                archiveAppendix.set(targetName)
+                archiveClassifier.set("all")
+                manifest {
+                    attributes("Main-Class" to mainClassName)
+                }
+                mergeServiceFiles()
+            }
+            getByName("${targetName}Jar") {
+                finalizedBy(shadowJar)
+            }
+        }
+    }
 }
 
 val ossrhUsername: String by project
@@ -13,46 +41,53 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
-    implementation("com.github.ajalt.clikt:clikt:4.2.2")
-    implementation("com.kgit2:kommand:2.0.1")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.10")
-    testImplementation("io.kotest:kotest-assertions-core:5.6.2")
-    testImplementation("io.mockk:mockk:1.13.9")
-}
-
 kotlin {
-    jvmToolchain(21)
-}
+    jvm {
+        withSourcesJar(publish = true)
 
-tasks {
-    test {
-        jvmArgs("-XX:+EnableDynamicAgentLoading")
+        registerShadowJar("MainKt")
+
+        compilations.named("main") {
+            tasks {
+                create<Jar>("javadocJar") {
+                    group = JavaBasePlugin.DOCUMENTATION_GROUP
+                    archiveClassifier = "javadoc"
+                    from(dokkaHtml)
+                }
+            }
+        }
     }
+    jvmToolchain(21)
 
-    shadowJar {
-        archiveClassifier = "all"
-        manifest {
-            attributes(mapOf("Main-Class" to "MainKt"))
+    macosArm64 {
+        binaries {
+            executable()
         }
     }
 
-    build {
-        dependsOn(shadowJar)
+    sourceSets {
+        val jvmTest by getting {
+            dependencies {
+                // the jvm warning for the dynamic agent must simply be accepted
+                implementation("io.mockk:mockk:1.13.9")
+            }
+        }
     }
-
-    create<Jar>("javadocJar") {
-        group = JavaBasePlugin.DOCUMENTATION_GROUP
-        archiveClassifier = "javadoc"
-        from(javadoc)
-    }
-
 }
 
 artifacts {
     archives(tasks["javadocJar"])
-    archives(tasks.kotlinSourcesJar)
+    archives(tasks["jvmSourcesJar"])
+}
+
+dependencies {
+    commonMainImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    commonMainImplementation("com.github.ajalt.clikt:clikt:4.2.2")
+    commonMainImplementation("com.kgit2:kommand:2.0.1")
+
+    // getting JUnit 5 to work is a nightmare, so we just use kotlin test
+    commonTestImplementation(kotlin("test"))
+    commonTestImplementation("io.kotest:kotest-assertions-core:5.6.2")
 }
 
 publishing {
@@ -71,17 +106,14 @@ publishing {
         }
     }
     publications {
-        create<MavenPublication>("maven") {
+        withType<MavenPublication> {
             val githubRepo = "fruiture/git-ccs"
 
             groupId = project.group.toString()
             artifactId = project.name
             version = project.version.toString()
 
-            from(components["kotlin"])
-            // could not find a more elegant solution here...
-            artifact(tasks.shadowJar)
-            artifact(tasks.kotlinSourcesJar)
+            artifact(tasks["jvmShadowJar"])
             artifact(tasks["javadocJar"])
 
             pom {
@@ -116,5 +148,12 @@ publishing {
 }
 
 signing {
-    sign(publishing.publications["maven"])
+    sign(publishing.publications)
+}
+
+tasks {
+    withType(AbstractPublishToMaven::class).configureEach {
+        val signingTasks = withType<Sign>()
+        mustRunAfter(signingTasks)
+    }
 }
