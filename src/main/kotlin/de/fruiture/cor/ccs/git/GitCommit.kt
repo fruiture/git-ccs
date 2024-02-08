@@ -6,24 +6,12 @@ import de.fruiture.cor.ccs.cc.Description
 import de.fruiture.cor.ccs.cc.Type
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import java.time.ZonedDateTime
 
-private object ZonedDateTimeSerializer : KSerializer<ZonedDateTime> {
-    override val descriptor = PrimitiveSerialDescriptor("zoned-date-time", PrimitiveKind.STRING)
-
-    override fun deserialize(decoder: Decoder): ZonedDateTime {
-        return ZonedDateTime.parse(decoder.decodeString())
-    }
-
-    override fun serialize(encoder: Encoder, value: ZonedDateTime) {
-        encoder.encodeString(value.toString())
-    }
+@JvmInline
+@Serializable
+value class ZonedDateTime(private val iso8601: String) {
+    override fun toString() = iso8601
 }
 
 val NON_CONVENTIONAL_COMMIT_TYPE = Type("none")
@@ -31,7 +19,6 @@ val NON_CONVENTIONAL_COMMIT_TYPE = Type("none")
 @Serializable
 data class GitCommit(
     val hash: String,
-    @Serializable(ZonedDateTimeSerializer::class)
     val date: ZonedDateTime,
     val message: String
 ) {
@@ -45,7 +32,7 @@ data class GitCommit(
             ConventionalCommitMessage(
                 type = NON_CONVENTIONAL_COMMIT_TYPE,
                 description = Description(lines.first()),
-                body = if(bodyText.isNotBlank()) Body(bodyText) else null
+                body = if (bodyText.isNotBlank()) Body(bodyText) else null
             )
         }
 

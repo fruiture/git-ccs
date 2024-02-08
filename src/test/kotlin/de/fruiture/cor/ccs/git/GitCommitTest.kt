@@ -5,7 +5,6 @@ import de.fruiture.cor.ccs.cc.ConventionalCommitMessage.Companion.message
 import de.fruiture.cor.ccs.cc.Description
 import de.fruiture.cor.ccs.cc.Type
 import io.kotest.matchers.shouldBe
-import java.time.ZonedDateTime
 import kotlin.test.Test
 
 class GitCommitTest {
@@ -14,7 +13,7 @@ class GitCommitTest {
     fun `parse conventional commit`() {
         val commit = GitCommit(
             hash = "cafe",
-            date = ZonedDateTime.now(),
+            date = ZonedDateTime("2001-01-01T12:00:00Z"),
             message = "feat: a feature"
         )
         commit.conventional shouldBe message("feat: a feature")
@@ -26,7 +25,7 @@ class GitCommitTest {
     fun `tolerate invalid commit message`() {
         val commit = GitCommit(
             hash = "cafe",
-            date = ZonedDateTime.now(),
+            date = ZonedDateTime("2001-01-01T12:00:00Z"),
             message = "non-conventional commit"
         )
         commit.conventional shouldBe ConventionalCommitMessage(

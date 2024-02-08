@@ -3,7 +3,6 @@ package de.fruiture.cor.ccs.git
 import de.fruiture.cor.ccs.semver.Release
 import de.fruiture.cor.ccs.semver.Version
 import de.fruiture.cor.ccs.semver.Version.Companion.extractVersion
-import java.time.ZonedDateTime
 
 const val RECORD_SEPARATOR = '\u001e'
 
@@ -41,7 +40,7 @@ class Git(private val sys: SystemCaller) {
                 val (hash, date) = match.destructured
                 GitCommit(
                     hash = hash,
-                    date = ZonedDateTime.parse(date),
+                    date = ZonedDateTime(date),
                     message = it.substring(match.range.last + 1)
                 )
             }

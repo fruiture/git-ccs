@@ -3,9 +3,9 @@ package de.fruiture.cor.ccs
 import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.git.GitCommit
 import de.fruiture.cor.ccs.git.NON_CONVENTIONAL_COMMIT_TYPE
+import de.fruiture.cor.ccs.git.ZonedDateTime
 import de.fruiture.cor.ccs.semver.ChangeType
 import io.kotest.matchers.shouldBe
-import java.time.ZonedDateTime
 import kotlin.test.Test
 
 class ChangeMappingTest {
@@ -21,11 +21,11 @@ class ChangeMappingTest {
     @Test
     fun `commit mapping`() {
         mapping.of(
-            GitCommit("cafe", ZonedDateTime.now(), "perf!: break API for speed")
+            GitCommit("cafe", ZonedDateTime("2001-01-01T12:00:00Z"), "perf!: break API for speed")
         ) shouldBe ChangeType.MAJOR
 
         mapping.of(
-            GitCommit("cafe", ZonedDateTime.now(), "perf: break API for speed")
+            GitCommit("cafe", ZonedDateTime("2001-01-01T12:00:00Z"), "perf: break API for speed")
         ) shouldBe ChangeType.PATCH
     }
 

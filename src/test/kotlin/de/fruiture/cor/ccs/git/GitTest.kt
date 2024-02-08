@@ -6,7 +6,6 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import java.time.ZonedDateTime
 import kotlin.test.Test
 
 class GitTest {
@@ -115,7 +114,7 @@ class GitTest {
         ) shouldBe listOf(
             GitCommit(
                 hash = "948f00f8b349c6f9652809f924254ffe7a497227",
-                date = ZonedDateTime.parse("2024-01-20T21:51:33+01:00"),
+                date = ZonedDateTime("2024-01-20T21:51:33+01:00"),
                 message = """
                     feat: blablabla
 
@@ -124,7 +123,7 @@ class GitTest {
             ),
             GitCommit(
                 hash = "b8d181d9e803da9ceba0c3c4918317124d678656",
-                date = ZonedDateTime.parse("2024-01-20T21:31:01+01:00"),
+                date = ZonedDateTime("2024-01-20T21:31:01+01:00"),
                 message = "non conventional commit"
             )
         )
@@ -150,7 +149,7 @@ class GitTest {
         Git(sys).getLog() shouldBe listOf(
             GitCommit(
                 hash = "b8d181d9e803da9ceba0c3c4918317124d678656",
-                date = ZonedDateTime.parse("2024-01-20T21:31:01+01:00"),
+                date = ZonedDateTime("2024-01-20T21:31:01+01:00"),
                 message = "non conventional commit"
             )
         )
