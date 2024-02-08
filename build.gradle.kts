@@ -34,7 +34,7 @@ tasks {
     shadowJar {
         archiveClassifier = "all"
         manifest {
-            attributes(mapOf("Main-Class" to "de.fruiture.cor.ccs.CLIKt"))
+            attributes(mapOf("Main-Class" to "MainKt"))
         }
     }
 
