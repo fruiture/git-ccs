@@ -3,9 +3,9 @@ package de.fruiture.cor.ccs.semver
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.DigitIdentifier.Companion.digits
 import de.fruiture.cor.ccs.semver.NumericIdentifier.Companion.numeric
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import kotlin.test.Test
 
 class VersionTest {
     @Test
@@ -119,7 +119,7 @@ class VersionTest {
     fun `valid alphanumeric identifiers`() {
         AlphaNumericIdentifier("foo")
         AlphaNumericIdentifier("foo-bar")
-        assertThrows<IllegalArgumentException> {
+        shouldThrow<IllegalArgumentException> {
             AlphaNumericIdentifier("0000")
         }
         AlphaNumericIdentifier("0000a")

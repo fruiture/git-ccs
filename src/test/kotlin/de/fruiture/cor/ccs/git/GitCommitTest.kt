@@ -5,8 +5,8 @@ import de.fruiture.cor.ccs.cc.ConventionalCommitMessage.Companion.message
 import de.fruiture.cor.ccs.cc.Description
 import de.fruiture.cor.ccs.cc.Type
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
+import kotlin.test.Test
 
 class GitCommitTest {
 

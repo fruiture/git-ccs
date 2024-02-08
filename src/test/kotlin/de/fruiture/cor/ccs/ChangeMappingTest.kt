@@ -5,8 +5,8 @@ import de.fruiture.cor.ccs.git.GitCommit
 import de.fruiture.cor.ccs.git.NON_CONVENTIONAL_COMMIT_TYPE
 import de.fruiture.cor.ccs.semver.ChangeType
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
+import kotlin.test.Test
 
 class ChangeMappingTest {
     private val mapping = ChangeMapping()

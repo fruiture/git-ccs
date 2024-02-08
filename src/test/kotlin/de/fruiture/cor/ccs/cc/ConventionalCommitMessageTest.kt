@@ -2,7 +2,7 @@ package de.fruiture.cor.ccs.cc
 
 import de.fruiture.cor.ccs.cc.ConventionalCommitMessage.Companion.message
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
 
 class ConventionalCommitMessageTest {
 

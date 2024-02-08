@@ -1,13 +1,13 @@
 package de.fruiture.cor.ccs.git
 
 import de.fruiture.cor.ccs.semver.Version.Companion.version
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.ZonedDateTime
+import kotlin.test.Test
 
 class GitTest {
 
@@ -84,7 +84,7 @@ class GitTest {
             }
         }
 
-        assertThrows<RuntimeException> { Git(sys).getLatestVersion() }
+        shouldThrow<RuntimeException> { Git(sys).getLatestVersion() }
     }
 
     @Test

@@ -1,14 +1,11 @@
 package de.fruiture.cor.ccs.git
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.condition.EnabledOnOs
-import org.junit.jupiter.api.condition.OS
 import java.util.concurrent.TimeoutException
+import kotlin.test.Test
 
-@EnabledOnOs(OS.LINUX, OS.MAC)
 class JvmProcessCallerTest {
 
     @Test
@@ -30,6 +27,6 @@ class JvmProcessCallerTest {
 
     @Test
     fun `invoke sleep and hit timeout`() {
-        assertThrows<TimeoutException> { JvmProcessCaller(50).call("sleep", listOf("1")) }
+        shouldThrow<TimeoutException> { JvmProcessCaller(50).call("sleep", listOf("1")) }
     }
 }

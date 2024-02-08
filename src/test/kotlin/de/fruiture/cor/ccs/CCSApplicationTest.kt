@@ -10,8 +10,8 @@ import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
+import kotlin.test.Test
 
 class CCSApplicationTest {
 

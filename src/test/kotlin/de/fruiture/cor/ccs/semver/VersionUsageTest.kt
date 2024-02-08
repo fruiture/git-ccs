@@ -7,7 +7,7 @@ import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.static
 import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
 
 class VersionUsageTest {
 
