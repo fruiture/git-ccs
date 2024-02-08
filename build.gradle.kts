@@ -34,8 +34,8 @@ fun KotlinJvmTarget.registerShadowJar(mainClassName: String) {
     }
 }
 
-val ossrhUsername: String by project
-val ossrhPassword: String by project
+val ossrhUsername: String? by project
+val ossrhPassword: String? by project
 
 repositories {
     mavenCentral()
