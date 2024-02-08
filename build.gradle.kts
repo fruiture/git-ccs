@@ -34,8 +34,8 @@ fun KotlinJvmTarget.registerShadowJar(mainClassName: String) {
     }
 }
 
-val ossrhUsername: String? by project
-val ossrhPassword: String? by project
+val ossrhUsername: String? = System.getenv("OSSRH_USERNAME") ?: findProperty("ossrhUsername")?.toString()
+val ossrhPassword: String? = System.getenv("OSSRH_PASSWORD") ?: findProperty("ossrhPassword")?.toString()
 
 repositories {
     mavenCentral()
@@ -62,7 +62,7 @@ kotlin {
     macosArm64 { binaries { executable() } }
     macosX64 { binaries { executable() } }
     linuxX64 { binaries { executable() } }
-    mingwX64{ binaries { executable() } }
+    mingwX64 { binaries { executable() } }
 
     sourceSets {
         val jvmTest by getting {
@@ -91,17 +91,19 @@ dependencies {
 
 publishing {
     repositories {
-        maven {
-            val nexusUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
-            val nexusUrlSnapshots = uri("https://oss.sonatype.org/content/repositories/snapshots")
+        if (ossrhUsername != null && ossrhPassword != null) {
+            maven {
+                val nexusUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+                val nexusUrlSnapshots = uri("https://oss.sonatype.org/content/repositories/snapshots")
 
-            credentials {
-                this.username = ossrhUsername
-                this.password = ossrhPassword
+                credentials {
+                    this.username = ossrhUsername
+                    this.password = ossrhPassword
+                }
+
+                url = if (version.toString().endsWith("SNAPSHOT")) nexusUrlSnapshots
+                else nexusUrl
             }
-
-            url = if (version.toString().endsWith("SNAPSHOT")) nexusUrlSnapshots
-            else nexusUrl
         }
     }
     publications {
@@ -109,7 +111,6 @@ publishing {
             val githubRepo = "fruiture/git-ccs"
 
             groupId = project.group.toString()
-            artifactId = project.name
             version = project.version.toString()
 
             artifact(tasks["jvmShadowJar"])
@@ -147,6 +148,12 @@ publishing {
 }
 
 signing {
+    if (System.getenv("GPG_PRIVATE_KEY") != null) {
+        useInMemoryPgpKeys(
+            System.getenv("GPG_PRIVATE_KEY"),
+            System.getenv("GPG_PRIVATE_KEY_PASSWORD")
+        )
+    }
     sign(publishing.publications)
 }
 
