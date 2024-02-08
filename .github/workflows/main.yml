@@ -26,15 +26,18 @@ jobs:
           name: executables-linux
           path: build/bin/linux*/releaseExecutable/*exe
           if-no-files-found: ignore
+          overwrite: true
       - name: Upload Windows Executables
         uses: actions/upload-artifact@v4
         with:
           name: executables-windows
           path: build/bin/mingw*/releaseExecutable/*exe
           if-no-files-found: ignore
+          overwrite: true
       - name: Upload MacOS Executables
         uses: actions/upload-artifact@v4
         with:
           name: executables-macos
           path: build/bin/macos*/releaseExecutable/*exe
           if-no-files-found: ignore
+          overwrite: true
