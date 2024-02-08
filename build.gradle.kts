@@ -59,11 +59,11 @@ kotlin {
     }
     jvmToolchain(21)
 
-    macosArm64 {
-        binaries {
-            executable()
-        }
-    }
+    macosArm64 { binaries { executable() } }
+    macosX64 { binaries { executable() } }
+    linuxX64 { binaries { executable() } }
+    linuxArm64 { binaries { executable() } }
+    mingwX64{ binaries { executable() } }
 
     sourceSets {
         val jvmTest by getting {
