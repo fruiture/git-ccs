@@ -20,9 +20,18 @@ jobs:
           distribution: 'temurin'
           java-version: 21
           cache: 'gradle'
+      - name: Download git-ccs
+        uses: engineerd/configurator@v0.0.9
+        with:
+          name: git-ccs
+          url: https://github.com/fruiture/git-ccs/releases/download/1.1.0-RC.3.SNAPSHOT/git-ccs-macos-x64-1.1.0-RC.3.SNAPSHOT.zip
+          pathInArchive: git-ccs-macos-x64-1.1.0-RC.3.SNAPSHOT/git-ccs
       - name: Determine Version
         id: version
-        run: echo "VERSION=1.1.0-RC.3.SNAPSHOT" >> "$GITHUB_OUTPUT"
+        run: |
+          VERSION=$(git-ccs next release)
+          echo "next version: $VERSION"
+          echo "VERSION=1.1.0-RC.3.SNAPSHOT" >> "$GITHUB_OUTPUT"
       - name: Build and Publish
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
