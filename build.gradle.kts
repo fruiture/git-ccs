@@ -10,6 +10,7 @@ plugins {
 
     `maven-publish`
     signing
+    distribution
 }
 
 fun KotlinJvmTarget.registerShadowJar(mainClassName: String) {
@@ -157,9 +158,35 @@ signing {
     sign(publishing.publications)
 }
 
+distributions {
+    listOf(
+        "linux-x64" to "linkReleaseExecutableLinuxX64",
+        "macos-arm64" to "linkReleaseExecutableMacosArm64",
+        "macos-x64" to "linkReleaseExecutableMacosX64",
+        "windows-x64" to "linkReleaseExecutableMingwX64"
+    ).map { (distName, linkTask) ->
+        create(distName) {
+            contents {
+                from(tasks[linkTask])
+                rename {
+                    it.removeSuffix(".kexe")
+                }
+            }
+        }
+    }
+}
+
 tasks {
+    // fix: make sure to publish after signing
     withType(AbstractPublishToMaven::class).configureEach {
         val signingTasks = withType<Sign>()
         mustRunAfter(signingTasks)
+    }
+    // fix: build all distributions
+    build {
+        val distArchiveTasks = withType<AbstractArchiveTask>().filter {
+            it.name.contains("Dist")
+        }
+        dependsOn(distArchiveTasks)
     }
 }
