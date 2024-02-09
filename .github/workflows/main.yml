@@ -39,7 +39,7 @@ jobs:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
           VERSION: ${{ steps.version.outputs.VERSION }}
-        run: gradle "-Pversion=$VERSION" build publish
+        run: gradle "-Pversion=$VERSION" "-PtaskThreads=2" build publish
       - name: Set Tag
         env:
           VERSION: ${{ steps.version.outputs.VERSION }}
