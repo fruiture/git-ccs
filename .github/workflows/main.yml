@@ -49,8 +49,6 @@ jobs:
       - name: Github Release
         uses: softprops/action-gh-release@v1
         with:
-          draft: true
-          prerelease: true
           name: ${{ steps.version.outputs.VERSION }}
           tag_name: ${{ steps.version.outputs.VERSION }}
           files: |
