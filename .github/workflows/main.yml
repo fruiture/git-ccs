@@ -20,21 +20,23 @@ jobs:
           distribution: 'temurin'
           java-version: 21
           cache: 'gradle'
+      - name: Determine Version
+        id: version
+        run: echo "VERSION=1.1.0-RC.2.SNAPSHOT" >> "$GITHUB_OUTPUT"
       - name: BuildAndPublish
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PRIVATE_KEY_PASSWORD: ${{ secrets.GPG_PRIVATE_KEY_PASSWORD }}
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-        run: |
-          VERSION=1.1.0-RC.2.SNAPSHOT
-          gradle -Pversion=$VERSION build publish
+          VERSION: ${{ steps.version.outputs.VERSION }}
+        run: gradle "-Pversion=$VERSION" build publish
       - name: Github Release
         uses: softprops/action-gh-release@v1
         with:
           draft: true
           prerelease: true
-          name: 1.1.0-RC.2.SNAPSHOT
+          name: ${{ steps.version.outputs.VERSION }}
           files: |
             LICENSE
             build/distributions/*
