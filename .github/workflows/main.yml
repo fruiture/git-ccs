@@ -20,13 +20,15 @@ jobs:
           distribution: 'temurin'
           java-version: 21
           cache: 'gradle'
-      - name: RunAllTests
+      - name: BuildAndPublish
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PRIVATE_KEY_PASSWORD: ${{ secrets.GPG_PRIVATE_KEY_PASSWORD }}
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-        run: ./gradlew build publishToMavenLocal
+        run: |
+          VERSION=1.1.0-RC.1.SNAPSHOT
+          gradle -Pversion=$VERSION build publish
       - name: Upload Linux Executables
         uses: actions/upload-artifact@v4
         with:
