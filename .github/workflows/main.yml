@@ -22,8 +22,8 @@ jobs:
           cache: 'gradle'
       - name: Determine Version
         id: version
-        run: echo "VERSION=1.1.0-RC.2.SNAPSHOT" >> "$GITHUB_OUTPUT"
-      - name: BuildAndPublish
+        run: echo "VERSION=1.1.0-RC.3.SNAPSHOT" >> "$GITHUB_OUTPUT"
+      - name: Build and Publish
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PRIVATE_KEY_PASSWORD: ${{ secrets.GPG_PRIVATE_KEY_PASSWORD }}
@@ -31,12 +31,19 @@ jobs:
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
           VERSION: ${{ steps.version.outputs.VERSION }}
         run: gradle "-Pversion=$VERSION" build publish
+      - name: Set Tag
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          git tag "$VERSION"
+          git push origin "$VERSION"
       - name: Github Release
         uses: softprops/action-gh-release@v1
         with:
           draft: true
           prerelease: true
           name: ${{ steps.version.outputs.VERSION }}
+          tag_name: ${{ steps.version.outputs.VERSION }}
           files: |
             LICENSE
             build/distributions/*
