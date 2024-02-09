@@ -40,4 +40,4 @@ jobs:
           files: |
             LICENSE
             build/distributions/*
-            build/libs/*
+            build/libs/git-ccs-jvm-*
