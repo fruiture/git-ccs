@@ -3,7 +3,7 @@ name: Build & Test
 on: [push]
 
 jobs:
-  test:
+  release:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -31,7 +31,7 @@ jobs:
         run: |
           VERSION=$(git-ccs next release)
           echo "next version: $VERSION"
-          echo "VERSION=1.1.0-RC.3.SNAPSHOT" >> "$GITHUB_OUTPUT"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
       - name: Build and Publish
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
