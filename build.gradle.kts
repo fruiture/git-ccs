@@ -176,12 +176,20 @@ distributions {
     }
 }
 
+// final "fixes" to the tasks that are generated above
 tasks {
     // fix: make sure to publish after signing
     withType(AbstractPublishToMaven::class).configureEach {
         val signingTasks = withType<Sign>()
         mustRunAfter(signingTasks)
     }
+
+    // fix: compress tar archives
+    withType<Tar> {
+        compression = Compression.GZIP
+        archiveExtension = "tar.gz"
+    }
+
     // fix: build all distributions
     build {
         val distArchiveTasks = withType<AbstractArchiveTask>().filter {
