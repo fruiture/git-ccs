@@ -47,7 +47,7 @@ class Git(private val sys: SystemCaller) {
         ).mapNotNull { VersionTag.versionTag(it) }.filter(tagFilter)
     }
 
-    fun getLog(from: Version? = null, to: Version? = null): List<GitCommit> {
+    fun getLogX(from: TagName? = null, to: TagName? = null): List<GitCommit> {
         val end = to?.toString() ?: "HEAD"
         val arguments = listOf("log", "--format=format:%H %aI%n%B%n%x1E",
             from?.let { "$it..$end" } ?: end
@@ -74,4 +74,6 @@ class Git(private val sys: SystemCaller) {
             throw RuntimeException("unexpected result from system call (git $arguments): $result")
         }
     }
+
+
 }

@@ -113,8 +113,8 @@ class GitTest {
             }
         }
 
-        Git(sys).getLog(
-            from = version("1.0.0")
+        Git(sys).getLogX(
+            from = TagName("1.0.0")
         ) shouldBe listOf(
             GitCommit(
                 hash = "948f00f8b349c6f9652809f924254ffe7a497227",
@@ -150,7 +150,7 @@ class GitTest {
             }
         }
 
-        Git(sys).getLog() shouldBe listOf(
+        Git(sys).getLogX() shouldBe listOf(
             GitCommit(
                 hash = "b8d181d9e803da9ceba0c3c4918317124d678656",
                 date = ZonedDateTime("2024-01-20T21:31:01+01:00"),
@@ -166,7 +166,7 @@ class GitTest {
                 call(
                     "git", listOf(
                         "log",
-                        "--format=format:%H %aI%n%B%n%x1E", "1.0.0"
+                        "--format=format:%H %aI%n%B%n%x1E", "v1.0.0"
                     )
                 )
             } returns SystemCallResult(
@@ -176,7 +176,7 @@ class GitTest {
                     """.trimIndent().lines()
             )
         }
-        Git(sys).getLog(to = version("1.0.0")) shouldHaveSize 1
+        Git(sys).getLogX(to = TagName("v1.0.0")) shouldHaveSize 1
     }
 
 }

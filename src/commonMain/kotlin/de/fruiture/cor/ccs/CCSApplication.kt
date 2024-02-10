@@ -1,8 +1,6 @@
 package de.fruiture.cor.ccs
 
-import de.fruiture.cor.ccs.git.Git
-import de.fruiture.cor.ccs.git.any
-import de.fruiture.cor.ccs.git.before
+import de.fruiture.cor.ccs.git.*
 import de.fruiture.cor.ccs.semver.PreRelease
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy
 import de.fruiture.cor.ccs.semver.Release
@@ -14,21 +12,21 @@ import kotlinx.serialization.json.Json
 class CCSApplication(
     private val git: Git
 ) {
-    private fun getChangeType(latestVersion: Version, mapping: ChangeMapping) =
-        mapping.of(git.getLog(latestVersion))
+    private fun getChangeType(latestVersion: VersionTag, mapping: ChangeMapping) =
+        mapping.of(git.getLogX(latestVersion.tag))
 
     fun getNextRelease(changeMapping: ChangeMapping = ChangeMapping()): Release {
-        val latestVersion = git.getLatestVersionTag()?.version ?: return Version.initial
+        val latestVersion = git.getLatestVersionTag() ?: return Version.initial
 
         val changeType = getChangeType(latestVersion, changeMapping)
-        return latestVersion.next(changeType)
+        return latestVersion.version.next(changeType)
     }
 
     fun getNextPreRelease(strategy: Strategy, changeMapping: ChangeMapping = ChangeMapping()): PreRelease {
-        val latestVersion = git.getLatestVersionTag()?.version ?: return initialPreRelease(strategy)
+        val latestVersion = git.getLatestVersionTag() ?: return initialPreRelease(strategy)
         val changeType = getChangeType(latestVersion, changeMapping)
 
-        return latestVersion.nextPreRelease(changeType, strategy)
+        return latestVersion.version.nextPreRelease(changeType, strategy)
     }
 
     private fun initialPreRelease(strategy: Strategy) =
@@ -43,16 +41,21 @@ class CCSApplication(
         return json.encodeToString(commits)
     }
 
-    private fun getChanges(release: Boolean, before: Version? = null) =
-        getLatest(release, before)?.let { git.getLog(from = it, to = before) } ?: git.getLog(to = before)
+    private fun getChanges(release: Boolean, before: Version? = null): List<GitCommit> {
+        val from = getLatest(release, optionalFilterBefore(before))
+        val to = if (before == null) null else getLatest(false, until(before))
+
+        return git.getLogX(from = from?.tag, to = to?.tag)
+    }
 
     fun getLatestVersion(release: Boolean = false, before: Version? = null): String? =
-        getLatest(release, before)?.toString()
+        getLatest(release, optionalFilterBefore(before))?.version?.toString()
 
-    private fun getLatest(release: Boolean, before: Version? = null): Version? {
-        val filter = if (before == null) any else before(before)
-        return if (release) git.getLatestReleaseTag(filter)?.version
-        else git.getLatestVersionTag(filter)?.version
+    private fun optionalFilterBefore(before: Version?) = if (before == null) any else before(before)
+
+    private fun getLatest(release: Boolean, filter: VersionFilter): VersionTag? {
+        return if (release) git.getLatestReleaseTag(filter)
+        else git.getLatestVersionTag(filter)
     }
 
     fun getChangeLogMarkdown(
