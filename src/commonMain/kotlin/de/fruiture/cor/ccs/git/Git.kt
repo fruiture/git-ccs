@@ -2,21 +2,21 @@ package de.fruiture.cor.ccs.git
 
 import de.fruiture.cor.ccs.semver.Release
 import de.fruiture.cor.ccs.semver.Version
-import de.fruiture.cor.ccs.semver.Version.Companion.extractVersion
 
 const val RECORD_SEPARATOR = '\u001e'
 
 class Git(private val sys: SystemCaller) {
-    fun getLatestVersion(before: Version? = null): Version? {
+
+    fun getLatestVersionTag(before: Version? = null): VersionTag? {
         return getAllVersionTags(before).maxOrNull()
     }
 
-    fun getLatestRelease(before: Version? = null): Release? {
-        return getAllVersionTags(before).filterIsInstance<Release>().maxOrNull()
+    fun getLatestReleaseTag(before: Version? = null): VersionTag? {
+        return getAllVersionTags(before).filter { it.version is Release }.maxOrNull()
     }
 
-    private fun getAllVersionTags(before: Version?): List<Version> {
-        val filter = before?.let { { v: Version -> v < it } } ?: { true }
+    private fun getAllVersionTags(before: Version?): List<VersionTag> {
+        val filter = before?.let { { tag: VersionTag -> tag.version < it } } ?: { true }
         return git(
             listOf(
                 "for-each-ref",
@@ -25,7 +25,7 @@ class Git(private val sys: SystemCaller) {
                 "--format=%(refname:short)",
                 "refs/tags/*.*.*"
             )
-        ).mapNotNull { extractVersion(it) }.filter(filter)
+        ).mapNotNull { VersionTag.versionTag(it) }.filter(filter)
     }
 
     fun getLog(from: Version? = null, to: Version? = null): List<GitCommit> {
@@ -55,4 +55,6 @@ class Git(private val sys: SystemCaller) {
             throw RuntimeException("unexpected result from system call (git $arguments): $result")
         }
     }
+
+
 }

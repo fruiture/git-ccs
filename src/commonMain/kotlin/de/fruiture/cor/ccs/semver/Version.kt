@@ -50,6 +50,8 @@ internal data class VersionCore(
     }
 }
 
+private val searchRegexp = Regex("\\d+\\.\\d+\\.\\d+(?:[-+.\\w]+)?")
+
 sealed class Version : Comparable<Version> {
     abstract val release: Release
     abstract val build: Build?
@@ -89,7 +91,9 @@ sealed class Version : Comparable<Version> {
             }
         }
 
-        fun extractVersion(string: String) = runCatching { version(string) }.getOrNull()
+        fun extractVersion(string: String) = searchRegexp.find(string)?.let { match ->
+            runCatching { version(match.value) }.getOrNull()
+        }
     }
 }
 

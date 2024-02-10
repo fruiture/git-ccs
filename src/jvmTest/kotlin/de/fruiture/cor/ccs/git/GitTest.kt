@@ -1,5 +1,6 @@
 package de.fruiture.cor.ccs.git
 
+import de.fruiture.cor.ccs.git.VersionTag.Companion.versionTag
 import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
@@ -19,29 +20,32 @@ class GitTest {
     )
 
     @Test
-    fun `get latest version or release using git for-each-ref`() {
+    fun `get latest version or release tag using git for-each-ref`() {
         val sys = mockk<SystemCaller>().apply {
             every { call("git", forEachRef) } returns SystemCallResult(
                 code = 0, stdout = listOf(
-                    "2.1.0-SNAPSHOT.1",
+                    "v2.1.0-SNAPSHOT.1",
                     "2.1.0-SNAPSHOT.2",
-                    "2.0.0",
+                    "rel2.0.0",
                     "1.3.9",
                     "1.3.9-RC.7"
                 )
             )
         }
 
-        Git(sys).getLatestVersion() shouldBe version("2.1.0-SNAPSHOT.2")
-        Git(sys).getLatestVersion(before = version("2.1.0-SNAPSHOT.2")) shouldBe version("2.1.0-SNAPSHOT.1")
-        Git(sys).getLatestVersion(before = version("2.1.0-SNAPSHOT.1")) shouldBe version("2.0.0")
+        val git = Git(sys)
 
-        Git(sys).getLatestRelease() shouldBe version("2.0.0")
-        Git(sys).getLatestRelease(before = version("2.1.0-SNAPSHOT.2")) shouldBe version("2.0.0")
-        Git(sys).getLatestRelease(before = version("2.0.0")) shouldBe version("1.3.9")
-        Git(sys).getLatestRelease(before = version("1.3.9")) shouldBe null
-        Git(sys).getLatestVersion(before = version("1.3.9")) shouldBe version("1.3.9-RC.7")
-        Git(sys).getLatestVersion(before = version("1.3.9-RC.7")) shouldBe null
+        git.getLatestVersionTag() shouldBe versionTag("2.1.0-SNAPSHOT.2")
+        git.getLatestVersionTag(before = version("2.1.0-SNAPSHOT.2")) shouldBe versionTag("v2.1.0-SNAPSHOT.1")
+        git.getLatestVersionTag(before = version("2.1.0-SNAPSHOT.1")) shouldBe versionTag("rel2.0.0")
+
+        git.getLatestReleaseTag() shouldBe versionTag("rel2.0.0")
+        git.getLatestReleaseTag(before = version("2.1.0-SNAPSHOT.2")) shouldBe versionTag("rel2.0.0")
+        git.getLatestReleaseTag(before = version("2.0.0")) shouldBe versionTag("1.3.9")
+        git.getLatestReleaseTag(before = version("1.3.9")) shouldBe null
+
+        git.getLatestVersionTag(before = version("1.3.9")) shouldBe versionTag("1.3.9-RC.7")
+        git.getLatestVersionTag(before = version("1.3.9-RC.7")) shouldBe null
     }
 
     @Test
@@ -52,8 +56,8 @@ class GitTest {
             )
         }
 
-        Git(sys).getLatestRelease() shouldBe null
-        Git(sys).getLatestVersion() shouldBe null
+        Git(sys).getLatestReleaseTag() shouldBe null
+        Git(sys).getLatestVersionTag() shouldBe null
     }
 
     @Test
@@ -69,7 +73,7 @@ class GitTest {
             )
         }
 
-        Git(sys).getLatestRelease() shouldBe version("2.0.0")
+        Git(sys).getLatestReleaseTag() shouldBe versionTag("2.0.0")
     }
 
     @Test
@@ -83,7 +87,7 @@ class GitTest {
             }
         }
 
-        shouldThrow<RuntimeException> { Git(sys).getLatestVersion() }
+        shouldThrow<RuntimeException> { Git(sys).getLatestVersionTag() }
     }
 
     @Test

@@ -3,6 +3,7 @@ package de.fruiture.cor.ccs.semver
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.DigitIdentifier.Companion.digits
 import de.fruiture.cor.ccs.semver.NumericIdentifier.Companion.numeric
+import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
@@ -127,12 +128,12 @@ class VersionTest {
 
     @Test
     fun `parsing versions`() {
-        Version.version("1.2.3") shouldBe Release(VersionCore.of(1, 2, 3))
-        Version.version("1.2.3+x23.005") shouldBe Release(
+        version("1.2.3") shouldBe Release(VersionCore.of(1, 2, 3))
+        version("1.2.3+x23.005") shouldBe Release(
             VersionCore.of(1, 2, 3),
             Build(listOf(BuildIdentifier.identifier("x23".alphanumeric), BuildIdentifier.identifier("005".digits)))
         )
-        Version.version("1.2.3-alpha.7.go-go+x23.005") shouldBe PreRelease(
+        version("1.2.3-alpha.7.go-go+x23.005") shouldBe PreRelease(
             VersionCore.of(1, 2, 3),
             PreReleaseIndicator(
                 listOf(
@@ -144,7 +145,7 @@ class VersionTest {
             Build(listOf(BuildIdentifier.identifier("x23".alphanumeric), BuildIdentifier.identifier("005".digits)))
         )
 
-        Version.version("1.2.3-alpha.7.go-go") shouldBe PreRelease(
+        version("1.2.3-alpha.7.go-go") shouldBe PreRelease(
             VersionCore.of(1, 2, 3),
             PreReleaseIndicator(
                 listOf(
@@ -154,6 +155,14 @@ class VersionTest {
                 )
             )
         )
+    }
+
+    @Test
+    fun `extracting version out of strings`() {
+        Version.extractVersion("v1.2.3") shouldBe version("1.2.3")
+        Version.extractVersion("version:2.1.0-SNAPSHOT.2") shouldBe version("2.1.0-SNAPSHOT.2")
+        Version.extractVersion("1.3.9 other stuff") shouldBe version("1.3.9")
+        Version.extractVersion("1.2prefix1.3.9-RC.7/suffix") shouldBe version("1.3.9-RC.7")
     }
 }
 

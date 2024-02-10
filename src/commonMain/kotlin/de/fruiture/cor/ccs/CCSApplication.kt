@@ -16,14 +16,14 @@ class CCSApplication(
         mapping.of(git.getLog(latestVersion))
 
     fun getNextRelease(changeMapping: ChangeMapping = ChangeMapping()): Release {
-        val latestVersion = git.getLatestVersion() ?: return Version.initial
+        val latestVersion = git.getLatestVersionTag()?.version ?: return Version.initial
 
         val changeType = getChangeType(latestVersion, changeMapping)
         return latestVersion.next(changeType)
     }
 
     fun getNextPreRelease(strategy: Strategy, changeMapping: ChangeMapping = ChangeMapping()): PreRelease {
-        val latestVersion = git.getLatestVersion() ?: return initialPreRelease(strategy)
+        val latestVersion = git.getLatestVersionTag()?.version ?: return initialPreRelease(strategy)
         val changeType = getChangeType(latestVersion, changeMapping)
 
         return latestVersion.nextPreRelease(changeType, strategy)
@@ -48,8 +48,8 @@ class CCSApplication(
         getLatest(release, before)?.toString()
 
     private fun getLatest(release: Boolean, before: Version? = null) =
-        if (release) git.getLatestRelease(before)
-        else git.getLatestVersion(before)
+        if (release) git.getLatestReleaseTag(before)?.version
+        else git.getLatestVersionTag(before)?.version
 
     fun getChangeLogMarkdown(
         release: Boolean = false,

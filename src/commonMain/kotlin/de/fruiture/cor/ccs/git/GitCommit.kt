@@ -4,6 +4,7 @@ import de.fruiture.cor.ccs.cc.Body
 import de.fruiture.cor.ccs.cc.ConventionalCommitMessage
 import de.fruiture.cor.ccs.cc.Description
 import de.fruiture.cor.ccs.cc.Type
+import de.fruiture.cor.ccs.semver.Version
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -39,4 +40,23 @@ data class GitCommit(
 
     val type = conventional.type
     val hasBreakingChange = conventional.hasBreakingChange
+}
+
+@JvmInline
+value class TagName(val value: String) {
+    override fun toString() = value
+}
+
+data class VersionTag(val tag: TagName, val version: Version) : Comparable<VersionTag> {
+    init {
+        require(tag.value.contains(version.toString())) { "tag '$tag' does not contain version number '$version'" }
+    }
+
+    override fun compareTo(other: VersionTag) = version.compareTo(other.version)
+
+    override fun toString() = tag.toString()
+
+    companion object {
+        fun versionTag(tagName: String) = Version.extractVersion(tagName)?.let { VersionTag(TagName(tagName), it) }
+    }
 }

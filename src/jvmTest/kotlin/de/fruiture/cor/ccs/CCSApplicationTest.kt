@@ -3,10 +3,10 @@ package de.fruiture.cor.ccs
 import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.git.Git
 import de.fruiture.cor.ccs.git.GitCommit
+import de.fruiture.cor.ccs.git.VersionTag.Companion.versionTag
 import de.fruiture.cor.ccs.git.ZonedDateTime
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
-import de.fruiture.cor.ccs.semver.Release
 import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -16,31 +16,31 @@ import kotlin.test.Test
 class CCSApplicationTest {
 
     private val oneFeatureAfterMajorRelease = mockk<Git>().apply {
-        every { getLatestVersion() } returns version("1.0.0")
-        every { getLatestRelease() } returns version("1.0.0") as Release
+        every { getLatestVersionTag() } returns versionTag("1.0.0")
+        every { getLatestReleaseTag() } returns versionTag("1.0.0")
         every { getLog(from = version("1.0.0")) } returns listOf(
             GitCommit("cafebabe", ZonedDateTime("2001-01-01T13:00Z"), "feat: a feature is born")
         )
     }
 
     private val noReleaseYet = mockk<Git>().apply {
-        every { getLatestVersion() } returns null
-        every { getLatestRelease() } returns null
+        every { getLatestVersionTag() } returns null
+        every { getLatestReleaseTag() } returns null
         every { getLog(from = null) } returns listOf(
             GitCommit("cafebabe", ZonedDateTime("2001-01-01T13:00Z"), "feat: a feature is born")
         )
     }
 
     private val hadABreakingChangeAfterSnapshot = mockk<Git>().apply {
-        every { getLatestVersion() } returns version("1.2.3-SNAPSHOT.5")
+        every { getLatestVersionTag() } returns versionTag("1.2.3-SNAPSHOT.5")
         every { getLog(from = version("1.2.3-SNAPSHOT.5")) } returns listOf(
             GitCommit("cafebabe", ZonedDateTime("2001-01-01T13:00Z"), "feat!: a feature with a breaking change")
         )
     }
 
     private val afterMultipleReleases = mockk<Git>().apply {
-        every { getLatestVersion(before = version("1.0.0")) } returns version("1.0.0-RC.3")
-        every { getLatestRelease(before = version("1.0.0")) } returns version("0.3.7") as Release
+        every { getLatestVersionTag(before = version("1.0.0")) } returns versionTag("1.0.0-RC.3")
+        every { getLatestReleaseTag(before = version("1.0.0")) } returns versionTag("0.3.7")
 
         every { getLog(from = version("0.3.7"),  to = version("1.0.0")) } returns listOf(
             GitCommit("cafebabe", ZonedDateTime("2001-01-01T13:00Z"), "feat: range change")
@@ -48,7 +48,7 @@ class CCSApplicationTest {
     }
 
     private val mixedBagOfCommits = mockk<Git>().apply {
-        every { getLatestVersion() } returns version("1.0.0")
+        every { getLatestVersionTag() } returns versionTag("1.0.0")
         every { getLog(from = version("1.0.0")) } returns listOf(
             GitCommit("0001", ZonedDateTime("2001-01-01T13:01Z"), "feat: feature1"),
             GitCommit("002", ZonedDateTime("2001-01-01T13:02Z"), "fix: fix2"),
