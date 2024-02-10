@@ -32,7 +32,7 @@ jobs:
           VERSION=$(git-ccs next release)
           git-ccs changes -r > CHANGES.md
           echo "next version: $VERSION"
-          echo "const val VERSION = \"0.0.1-DEV.SNAPSHOT\"" > src/commonMain/kotlin/version.kt
+          echo "const val VERSION = \"$VERSION\"" > src/commonMain/kotlin/version.kt
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
       - name: Build and Publish
         env:
