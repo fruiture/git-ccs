@@ -30,6 +30,7 @@ jobs:
         id: version
         run: |
           VERSION=$(git-ccs next release)
+          git-ccs changes -r > CHANGES.md
           echo "next version: $VERSION"
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
       - name: Build and Publish
@@ -51,6 +52,7 @@ jobs:
         with:
           name: ${{ steps.version.outputs.VERSION }}
           tag_name: ${{ steps.version.outputs.VERSION }}
+          body_path: CHANGES.md
           files: |
             LICENSE
             build/distributions/*
