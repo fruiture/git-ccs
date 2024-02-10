@@ -1,5 +1,6 @@
 package de.fruiture.cor.ccs
 
+import VERSION
 import com.github.ajalt.clikt.testing.test
 import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
@@ -49,7 +50,7 @@ class CLITest {
     @Test
     fun `show help`() {
         cli.test("next --help").output shouldStartWith """
-            Usage: ccs next [<options>] <command> [<args>]...
+            Usage: git-ccs next [<options>] <command> [<args>]...
 
               compute the next semantic version based on changes since the last version tag
         """.trimIndent()
@@ -58,13 +59,13 @@ class CLITest {
 
     @Test
     fun `show help when nothing`() {
-        cli.test("").output shouldStartWith "Usage: ccs"
+        cli.test("").output shouldStartWith "Usage: git-ccs"
     }
 
     @Test
     fun `illegal command`() {
         cli.test("nope").stderr shouldBe """
-            Usage: ccs [<options>] <command> [<args>]...
+            Usage: git-ccs [<options>] <command> [<args>]...
 
             Error: no such subcommand nope
             
@@ -149,5 +150,10 @@ class CLITest {
             )
         } returns "# Fun"
         cli.test("changes -s 'Fun=feat' -l 1").output shouldBe "# Fun"
+    }
+
+    @org.junit.Test
+    fun `show version`() {
+        cli.test("--version").output shouldBe "git-ccs version $VERSION\n"
     }
 }

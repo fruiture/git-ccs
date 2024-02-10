@@ -1,5 +1,6 @@
 package de.fruiture.cor.ccs
 
+import VERSION
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.ProgramResult
@@ -64,10 +65,12 @@ private class LogOptions : OptionGroup() {
 }
 
 class CLI(app: CCSApplication) : NoOpCliktCommand(
-    name = "ccs",
+    name = "git-ccs",
     help = "Conventional Commits & Semantic Versioning Utility for Git Repositories"
 ) {
     init {
+        versionOption(VERSION)
+
         subcommands(object : NoOpCliktCommand(
             name = "next",
             help = "compute the next semantic version based on changes since the last version tag",
