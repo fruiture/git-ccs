@@ -1,6 +1,8 @@
 package de.fruiture.cor.ccs
 
 import de.fruiture.cor.ccs.git.Git
+import de.fruiture.cor.ccs.git.any
+import de.fruiture.cor.ccs.git.before
 import de.fruiture.cor.ccs.semver.PreRelease
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy
 import de.fruiture.cor.ccs.semver.Release
@@ -47,9 +49,11 @@ class CCSApplication(
     fun getLatestVersion(release: Boolean = false, before: Version? = null): String? =
         getLatest(release, before)?.toString()
 
-    private fun getLatest(release: Boolean, before: Version? = null) =
-        if (release) git.getLatestReleaseTag(before)?.version
-        else git.getLatestVersionTag(before)?.version
+    private fun getLatest(release: Boolean, before: Version? = null): Version? {
+        val filter = if (before == null) any else before(before)
+        return if (release) git.getLatestReleaseTag(filter)?.version
+        else git.getLatestVersionTag(filter)?.version
+    }
 
     fun getChangeLogMarkdown(
         release: Boolean = false,

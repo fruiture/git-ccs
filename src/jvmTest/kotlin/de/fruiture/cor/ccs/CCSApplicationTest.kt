@@ -5,6 +5,7 @@ import de.fruiture.cor.ccs.git.Git
 import de.fruiture.cor.ccs.git.GitCommit
 import de.fruiture.cor.ccs.git.VersionTag.Companion.versionTag
 import de.fruiture.cor.ccs.git.ZonedDateTime
+import de.fruiture.cor.ccs.git.before
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
 import de.fruiture.cor.ccs.semver.Version.Companion.version
@@ -39,10 +40,10 @@ class CCSApplicationTest {
     }
 
     private val afterMultipleReleases = mockk<Git>().apply {
-        every { getLatestVersionTag(before = version("1.0.0")) } returns versionTag("1.0.0-RC.3")
-        every { getLatestReleaseTag(before = version("1.0.0")) } returns versionTag("0.3.7")
+        every { getLatestVersionTag(before(version("1.0.0"))) } returns versionTag("1.0.0-RC.3")
+        every { getLatestReleaseTag(before(version("1.0.0"))) } returns versionTag("0.3.7")
 
-        every { getLog(from = version("0.3.7"),  to = version("1.0.0")) } returns listOf(
+        every { getLog(from = version("0.3.7"), to = version("1.0.0")) } returns listOf(
             GitCommit("cafebabe", ZonedDateTime("2001-01-01T13:00Z"), "feat: range change")
         )
     }
@@ -114,7 +115,10 @@ class CCSApplicationTest {
     @Test
     fun `get latest version before another version`() {
         CCSApplication(afterMultipleReleases).getLatestVersion(before = version("1.0.0")) shouldBe "1.0.0-RC.3"
-        CCSApplication(afterMultipleReleases).getLatestVersion(release = true, before = version("1.0.0")) shouldBe "0.3.7"
+        CCSApplication(afterMultipleReleases).getLatestVersion(
+            release = true,
+            before = version("1.0.0")
+        ) shouldBe "0.3.7"
     }
 
     @Test

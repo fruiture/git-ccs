@@ -36,16 +36,16 @@ class GitTest {
         val git = Git(sys)
 
         git.getLatestVersionTag() shouldBe versionTag("2.1.0-SNAPSHOT.2")
-        git.getLatestVersionTag(before = version("2.1.0-SNAPSHOT.2")) shouldBe versionTag("v2.1.0-SNAPSHOT.1")
-        git.getLatestVersionTag(before = version("2.1.0-SNAPSHOT.1")) shouldBe versionTag("rel2.0.0")
+        git.getLatestVersionTag(before(version("2.1.0-SNAPSHOT.2"))) shouldBe versionTag("v2.1.0-SNAPSHOT.1")
+        git.getLatestVersionTag(before(version("2.1.0-SNAPSHOT.1"))) shouldBe versionTag("rel2.0.0")
 
         git.getLatestReleaseTag() shouldBe versionTag("rel2.0.0")
-        git.getLatestReleaseTag(before = version("2.1.0-SNAPSHOT.2")) shouldBe versionTag("rel2.0.0")
-        git.getLatestReleaseTag(before = version("2.0.0")) shouldBe versionTag("1.3.9")
-        git.getLatestReleaseTag(before = version("1.3.9")) shouldBe null
+        git.getLatestReleaseTag(before(version("2.1.0-SNAPSHOT.2"))) shouldBe versionTag("rel2.0.0")
+        git.getLatestReleaseTag(before(version("2.0.0"))) shouldBe versionTag("1.3.9")
+        git.getLatestReleaseTag(before(version("1.3.9"))) shouldBe null
 
-        git.getLatestVersionTag(before = version("1.3.9")) shouldBe versionTag("1.3.9-RC.7")
-        git.getLatestVersionTag(before = version("1.3.9-RC.7")) shouldBe null
+        git.getLatestVersionTag(before(version("1.3.9"))) shouldBe versionTag("1.3.9-RC.7")
+        git.getLatestVersionTag(before(version("1.3.9-RC.7"))) shouldBe null
     }
 
     @Test
