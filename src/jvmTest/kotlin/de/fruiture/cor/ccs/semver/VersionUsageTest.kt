@@ -83,7 +83,7 @@ class VersionUsageTest {
         version("1.2.3-rc.1").nextPreRelease(counter("rc".alphanumeric)) shouldBe version("1.2.3-rc.2")
         version("1.2.3-rc").nextPreRelease(counter("rc".alphanumeric)) shouldBe version("1.2.3-rc.2")
 
-        version("1.2.3").nextPreRelease() shouldBe version("1.2.3-SNAPSHOT.1")
+        version("1.2.3").nextPreRelease() shouldBe version("1.2.3-RC.1")
         version("1.2.3").nextPreRelease(counter("RC".alphanumeric)) shouldBe version("1.2.3-RC.1")
 
         val alpha = counter("alpha".alphanumeric)
@@ -109,18 +109,18 @@ class VersionUsageTest {
     @Test
     fun `pre release strategy`() {
         val lastRelease = version("1.2.3") as Release
-        val lastPreRelease = version("1.2.4-SNAPSHOT.1") as PreRelease
+        val lastPreRelease = version("1.2.4-RC.1") as PreRelease
 
         lastRelease.next(ChangeType.PATCH).nextPreRelease() shouldBe lastPreRelease
         lastRelease.nextPreRelease(ChangeType.PATCH) shouldBe lastPreRelease
 
-        lastPreRelease.nextPreRelease(ChangeType.NONE) shouldBe version("1.2.4-SNAPSHOT.2")
-        lastPreRelease.nextPreRelease(ChangeType.PATCH) shouldBe version("1.2.4-SNAPSHOT.2")
-        lastPreRelease.nextPreRelease(ChangeType.MINOR) shouldBe version("1.3.0-SNAPSHOT.1")
-        lastPreRelease.nextPreRelease(ChangeType.MAJOR) shouldBe version("2.0.0-SNAPSHOT.1")
+        lastPreRelease.nextPreRelease(ChangeType.NONE) shouldBe version("1.2.4-RC.2")
+        lastPreRelease.nextPreRelease(ChangeType.PATCH) shouldBe version("1.2.4-RC.2")
+        lastPreRelease.nextPreRelease(ChangeType.MINOR) shouldBe version("1.3.0-RC.1")
+        lastPreRelease.nextPreRelease(ChangeType.MAJOR) shouldBe version("2.0.0-RC.1")
 
-        (version("2.0.0-SNAPSHOT.1") as PreRelease).nextPreRelease(ChangeType.PATCH) shouldBe
-                version("2.0.0-SNAPSHOT.2")
+        (version("2.0.0-RC.1") as PreRelease).nextPreRelease(ChangeType.PATCH) shouldBe
+                version("2.0.0-RC.2")
     }
 
     @Test

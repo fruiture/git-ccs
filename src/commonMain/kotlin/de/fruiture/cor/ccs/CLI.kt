@@ -9,9 +9,8 @@ import com.github.ajalt.clikt.parameters.groups.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.int
 import de.fruiture.cor.ccs.cc.Type
-import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.ChangeType
-import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.DEFAULT_PRERELEASE
+import de.fruiture.cor.ccs.semver.PreReleaseIndicator
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.static
 import de.fruiture.cor.ccs.semver.Version.Companion.version
@@ -93,32 +92,33 @@ class CLI(app: CCSApplication) : NoOpCliktCommand(
 
                     object : CliktCommand(
                         name = "pre-release",
-                        help = "create a pre-release version, e.g. 1.2.3-SNAPSHOT.5"
+                        help = "create a pre-release version, e.g. 1.2.3-RC.1"
                     ) {
-
-
-                        val identifier by option(
-                            "-i", "--identifier",
-                            help = "set the pre-release identifier (default: 'SNAPSHOT')"
-                        ).convert { it.alphanumeric }.default(DEFAULT_PRERELEASE)
-
                         val strategy by mutuallyExclusiveOptions(
                             option(
                                 "-c", "--counter",
-                                help = "(default) add a numeric counter to the pre-release identifier, e.g. 1.2.3-SNAPSHOT.3"
-                            ).flag().convert { { counter(identifier) } },
+                                help = "(default) add a numeric release candidate counter, e.g. 1.2.3-RC.3"
+                            ).flag().convert { counter() },
+
                             option(
                                 "-s", "--static",
-                                help = "always keep the pre-release identifier static, e.g. 1.2.3-SNAPSHOT"
-                            ).flag().convert { { static(identifier) } }
-                        ).single().default { counter(identifier) }
+                                help = "just append a fixed pre-release identifier 'SNAPSHOT' (maven convention), e.g. 1.2.3-SNAPSHOT"
+                            ).flag().convert { static() },
+
+                            option(
+                                "-f", "--format",
+                                help = "specify a pattern, like: RC.1.DEV, where 'RC.1' would become a counter and 'DEV' would be static"
+                            ).convert {
+                                PreReleaseIndicator.Strategy.deduct(it)
+                            }
+                        ).single().default(counter())
 
                         val mappingOptions by MappingOptions()
 
                         override fun run() {
                             echo(
                                 message = app.getNextPreRelease(
-                                    strategy = strategy(),
+                                    strategy = strategy,
                                     changeMapping = mappingOptions.getMapping()
                                 ), trailingNewline = false
                             )

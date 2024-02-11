@@ -64,7 +64,7 @@ class CCSApplicationTest {
 
     @Test
     fun `get next pre-release version`() {
-        CCSApplication(oneFeatureAfterMajorRelease).getNextPreRelease(counter()) shouldBe version("1.1.0-SNAPSHOT.1")
+        CCSApplication(oneFeatureAfterMajorRelease).getNextPreRelease(counter()) shouldBe version("1.1.0-RC.1")
         CCSApplication(oneFeatureAfterMajorRelease).getNextPreRelease(counter("alpha".alphanumeric)) shouldBe version("1.1.0-alpha.1")
     }
 
@@ -73,7 +73,7 @@ class CCSApplicationTest {
     fun `get initial release or snapshot`() {
         CCSApplication(noReleaseYet).getNextRelease() shouldBe version("0.0.1")
         CCSApplication(noReleaseYet).getNextPreRelease(counter("RC".alphanumeric)) shouldBe version("0.0.1-RC.1")
-        CCSApplication(noReleaseYet).getNextPreRelease(counter()) shouldBe version("0.0.1-SNAPSHOT.1")
+        CCSApplication(noReleaseYet).getNextPreRelease(counter()) shouldBe version("0.0.1-RC.1")
     }
 
     @Test
@@ -97,7 +97,7 @@ class CCSApplicationTest {
     @Test
     fun `breaking change is recognized`() {
         CCSApplication(hadABreakingChangeAfterSnapshot).getNextRelease() shouldBe version("2.0.0")
-        CCSApplication(hadABreakingChangeAfterSnapshot).getNextPreRelease(counter()) shouldBe version("2.0.0-SNAPSHOT.1")
+        CCSApplication(hadABreakingChangeAfterSnapshot).getNextPreRelease(counter()) shouldBe version("2.0.0-RC.1")
     }
 
     @Test

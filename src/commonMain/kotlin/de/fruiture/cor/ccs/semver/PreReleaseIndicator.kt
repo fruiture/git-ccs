@@ -59,9 +59,10 @@ data class PreReleaseIndicator(val identifiers: List<PreReleaseIdentifier>) : Co
         fun start(): PreReleaseIndicator
 
         companion object {
-            val DEFAULT_PRERELEASE = "SNAPSHOT".alphanumeric
+            val DEFAULT_STATIC = "SNAPSHOT".alphanumeric
+            val DEFAULT_COUNTER = "RC".alphanumeric
 
-            fun counter(identifier: AlphaNumericIdentifier = DEFAULT_PRERELEASE): Strategy = CounterStrategy(identifier)
+            fun counter(identifier: AlphaNumericIdentifier = DEFAULT_COUNTER): Strategy = CounterStrategy(identifier)
 
             private data class CounterStrategy(val identifier: AlphaNumericIdentifier) : Strategy {
                 override fun next(indicator: PreReleaseIndicator) =
@@ -110,7 +111,7 @@ data class PreReleaseIndicator(val identifiers: List<PreReleaseIdentifier>) : Co
                 return copy(identifiers = replaced)
             }
 
-            fun static(identifier: AlphaNumericIdentifier = DEFAULT_PRERELEASE): Strategy = Static(identifier)
+            fun static(identifier: AlphaNumericIdentifier = DEFAULT_STATIC): Strategy = Static(identifier)
 
             private data class Static(val identifier: AlphaNumericIdentifier) : Strategy {
                 override fun next(indicator: PreReleaseIndicator) =
@@ -122,6 +123,29 @@ data class PreReleaseIndicator(val identifiers: List<PreReleaseIdentifier>) : Co
             }
 
             operator fun Strategy.plus(then: Strategy): Strategy = Combined(this, then)
+
+            fun deduct(spec: String): Strategy {
+                val identifiers = preRelease(spec).identifiers
+                return sequence {
+                    var i = 0
+                    while (i < identifiers.size) {
+                        val k = identifiers[i]
+                        if (k is PreReleaseIdentifier.AlphaNumeric) {
+                            if (i + 1 < identifiers.size) {
+                                val v = identifiers[i + 1]
+                                if (v is PreReleaseIdentifier.Numeric) {
+                                    this.yield(counter(k.identifier))
+                                    i += 2
+                                    continue
+                                }
+                            }
+
+                            this.yield(static(k.identifier))
+                        }
+                        i++
+                    }
+                }.reduce { a, b -> a + b }
+            }
 
             private data class Combined(val first: Strategy, val second: Strategy) : Strategy {
                 override fun next(indicator: PreReleaseIndicator): PreReleaseIndicator {

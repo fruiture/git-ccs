@@ -6,8 +6,9 @@ import de.fruiture.cor.ccs.cc.Type
 import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.ChangeType
 import de.fruiture.cor.ccs.semver.PreRelease
-import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.DEFAULT_PRERELEASE
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
+import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.plus
+import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.static
 import de.fruiture.cor.ccs.semver.Release
 import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.matchers.shouldBe
@@ -25,8 +26,7 @@ class CLITest {
 
     init {
         every { app.getNextRelease() } returns version("1.2.3") as Release
-        every { app.getNextPreRelease(counter(DEFAULT_PRERELEASE)) } returns version("1.2.3-SNAPSHOT.5") as PreRelease
-        every { app.getNextPreRelease(counter("RC".alphanumeric)) } returns version("1.2.3-RC.1") as PreRelease
+        every { app.getNextPreRelease(counter()) } returns version("1.2.3-RC.5") as PreRelease
     }
 
     @Test
@@ -37,14 +37,25 @@ class CLITest {
 
     @Test
     fun `next pre-release`() {
-        cli.test("next pre-release").output shouldBe "1.2.3-SNAPSHOT.5"
-        verify { app.getNextPreRelease(counter(DEFAULT_PRERELEASE)) }
+        cli.test("next pre-release").output shouldBe "1.2.3-RC.5"
+        verify { app.getNextPreRelease(counter()) }
     }
 
     @Test
-    fun `next pre-release RC`() {
-        cli.test("next pre-release -i RC").output shouldBe "1.2.3-RC.1"
-        verify { app.getNextPreRelease(counter("RC".alphanumeric)) }
+    fun `next pre-release custom`() {
+        every { app.getNextPreRelease(counter("alpha".alphanumeric)) } returns version("1.2.3-alpha.5") as PreRelease
+        cli.test("next pre-release -f alpha.1").output shouldBe "1.2.3-alpha.5"
+    }
+
+    @Test
+    fun `combined counter and static strategy`() {
+        every {
+            app.getNextPreRelease(
+                counter("alpha".alphanumeric) + static("snap".alphanumeric)
+            )
+        } returns version("1.2.3-alpha.1.snap") as PreRelease
+
+        cli.test("next pre-release -f alpha.1.snap").output shouldBe "1.2.3-alpha.1.snap"
     }
 
     @Test
@@ -152,8 +163,10 @@ class CLITest {
         cli.test("changes -s 'Fun=feat' -l 1").output shouldBe "# Fun"
     }
 
-    @org.junit.Test
+    @Test
     fun `show version`() {
         cli.test("--version").output shouldBe "git-ccs version $VERSION\n"
     }
+
+
 }
