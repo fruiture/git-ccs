@@ -60,6 +60,7 @@ data class PreReleaseIndicator(val identifiers: List<PreReleaseIdentifier>) : Co
 
         companion object {
             val DEFAULT_PRERELEASE = "SNAPSHOT".alphanumeric
+
             fun counter(identifier: AlphaNumericIdentifier = DEFAULT_PRERELEASE): Strategy = CounterStrategy(identifier)
 
             private data class CounterStrategy(val identifier: AlphaNumericIdentifier) : Strategy {
@@ -118,6 +119,18 @@ data class PreReleaseIndicator(val identifiers: List<PreReleaseIdentifier>) : Co
                     }
 
                 override fun start() = of(identifier(identifier))
+            }
+
+            operator fun Strategy.plus(then: Strategy): Strategy = Combined(this, then)
+
+            private data class Combined(val first: Strategy, val second: Strategy) : Strategy {
+                override fun next(indicator: PreReleaseIndicator): PreReleaseIndicator {
+                    return indicator.let(first::next).let(second::next)
+                }
+
+                override fun start(): PreReleaseIndicator {
+                    return first.start().let(second::next)
+                }
             }
         }
     }

@@ -4,6 +4,7 @@ import de.fruiture.cor.ccs.semver.AlphaNumericIdentifier.Companion.alphanumeric
 import de.fruiture.cor.ccs.semver.Build.Companion.build
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Companion.preRelease
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.counter
+import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.plus
 import de.fruiture.cor.ccs.semver.PreReleaseIndicator.Strategy.Companion.static
 import de.fruiture.cor.ccs.semver.Version.Companion.version
 import io.kotest.matchers.shouldBe
@@ -120,5 +121,16 @@ class VersionUsageTest {
 
         (version("2.0.0-SNAPSHOT.1") as PreRelease).nextPreRelease(ChangeType.PATCH) shouldBe
                 version("2.0.0-SNAPSHOT.2")
+    }
+
+    @Test
+    fun `counter pre-releases with static suffix`() {
+        val strategy = counter("RC".alphanumeric) + static("SNAPSHOT".alphanumeric)
+        val inverse = static("SNAPSHOT".alphanumeric) + counter("RC".alphanumeric)
+
+        version("1.2.3").nextPreRelease(ChangeType.PATCH, strategy) shouldBe version("1.2.4-RC.1.SNAPSHOT")
+        version("1.2.3").nextPreRelease(ChangeType.PATCH, inverse) shouldBe version("1.2.4-SNAPSHOT.RC.1")
+        version("1.2.4-RC.1.SNAPSHOT").nextPreRelease(ChangeType.PATCH, strategy) shouldBe
+                version("1.2.4-RC.2.SNAPSHOT")
     }
 }
