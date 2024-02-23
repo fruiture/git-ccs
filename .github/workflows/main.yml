@@ -24,7 +24,7 @@ jobs:
         uses: engineerd/configurator@v0.0.9
         with:
           name: git-ccs
-          url: https://github.com/fruiture/git-ccs/releases/download/2.0.0-RC.1/git-ccs-macos-x64-1.1.0-RC.3.SNAPSHOT.zip
+          url: https://github.com/fruiture/git-ccs/releases/download/2.0.0-RC.1/git-ccs-macos-x64-2.0.0-RC.1.tar.gz
           pathInArchive: git-ccs-macos-x64-2.0.0-RC.1/git-ccs
       - name: Determine Version
         id: version
