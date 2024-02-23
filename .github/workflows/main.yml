@@ -24,12 +24,12 @@ jobs:
         uses: engineerd/configurator@v0.0.9
         with:
           name: git-ccs
-          url: https://github.com/fruiture/git-ccs/releases/download/1.1.0-RC.3.SNAPSHOT/git-ccs-macos-x64-1.1.0-RC.3.SNAPSHOT.zip
-          pathInArchive: git-ccs-macos-x64-1.1.0-RC.3.SNAPSHOT/git-ccs
+          url: https://github.com/fruiture/git-ccs/releases/download/2.0.0-RC.1/git-ccs-macos-x64-1.1.0-RC.3.SNAPSHOT.zip
+          pathInArchive: git-ccs-macos-x64-2.0.0-RC.1/git-ccs
       - name: Determine Version
         id: version
         env:
-          STRATEGY: ${{ github.ref_name == 'release' && 'release' || 'pre-release -ci RC'  }}
+          STRATEGY: ${{ github.ref_name == 'release' && 'release' || 'pre-release -f RC.1.SNAPSHOT'  }}
         run: |
           VERSION=$(git-ccs next $STRATEGY)
           git-ccs changes -r > CHANGES.md
