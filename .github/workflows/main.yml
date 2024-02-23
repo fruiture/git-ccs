@@ -28,8 +28,10 @@ jobs:
           pathInArchive: git-ccs-macos-x64-1.1.0-RC.3.SNAPSHOT/git-ccs
       - name: Determine Version
         id: version
+        env:
+          STRATEGY: ${{ github.ref_name == 'release' && 'release' || 'pre-release -ci RC'  }}
         run: |
-          VERSION=$(git-ccs next release)
+          VERSION=$(git-ccs next $STRATEGY)
           git-ccs changes -r > CHANGES.md
           echo "next version: $VERSION"
           echo "const val VERSION = \"$VERSION\"" > src/commonMain/kotlin/version.kt
