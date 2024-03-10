@@ -63,7 +63,9 @@ kotlin {
     macosArm64 { binaries { executable() } }
     macosX64 { binaries { executable() } }
     linuxX64 { binaries { executable() } }
-    linuxArm64 { binaries { executable() } }
+    // clikt has no linux arm 64 variant available :-(
+    // see https://github.com/ajalt/clikt/issues/404
+    // linuxArm64 { binaries { executable() } }
     mingwX64 { binaries { executable() } }
 
     sourceSets {
