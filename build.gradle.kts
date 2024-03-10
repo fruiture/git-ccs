@@ -63,6 +63,7 @@ kotlin {
     macosArm64 { binaries { executable() } }
     macosX64 { binaries { executable() } }
     linuxX64 { binaries { executable() } }
+    linuxArm64 { binaries { executable() } }
     mingwX64 { binaries { executable() } }
 
     sourceSets {
